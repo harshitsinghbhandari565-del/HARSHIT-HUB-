@@ -1,0 +1,21 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-declaration-strict-value"],
+  "ignoreFiles": [
+    "**/tokens.css",
+    "**/tokens.dark.css",
+    "dist/**",
+    "node_modules/**"
+  ],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      ["color", "background-color", "border-color"],
+      {
+        "ignoreValues": ["currentColor", "transparent", "inherit", "initial", "unset"]
+      }
+    ],
+    "declaration-property-value-disallowed-list": {
+      "color": ["/--color-neutral-400/"]
+    }
+  }
+}
