@@ -1,0 +1,150 @@
+/* MobileMenu — trigger + slide-in panel (Design §29.5: 300ms ease-out
+   open, 250ms ease-in close; reduced motion fades only via the global
+   block). */
+
+.wrapper {
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-neutral-600);
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.trigger:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.panel {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  width: min(320px, 85vw);
+  margin-left: auto;
+  padding: var(--space-4);
+  background-color: var(--color-neutral-50);
+  box-shadow: var(--shadow-xl);
+  visibility: hidden;
+  transform: translateX(100%);
+  transition:
+    transform var(--duration-slow) var(--ease-in),
+    visibility 0s var(--duration-slow);
+}
+
+.panelOpen {
+  visibility: visible;
+  transform: translateX(0);
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-4);
+  font-weight: 700;
+  color: var(--color-primary-900);
+}
+
+.brandDot {
+  color: var(--color-accent-500);
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-neutral-600);
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.closeButton:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
+.nav {
+  flex: 1;
+}
+
+.linkList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-neutral-600);
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.link:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
+.link[aria-current='page'] {
+  color: var(--color-primary-500);
+  font-weight: 600;
+  background-color: var(--color-primary-50);
+}
+
+/* Hidden without JS — the Header's static nav is the no-JS path (I1). */
+:global(html:not(.js)) .wrapper {
+  display: none;
+}
+
+/* Desktop/tablet use the inline nav (Design §29.4). */
+@media (width >= 768px) {
+  .wrapper {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .closeButton,
+  .link,
+  .panel {
+    transition: none;
+  }
+}
