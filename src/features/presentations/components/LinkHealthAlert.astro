@@ -1,0 +1,47 @@
+---
+/**
+ * LinkHealthAlert — renders external-link warnings from build-time
+ * linkHealth data (ADR-0006 / TAD §16.3). Runtime detection is
+ * impossible from the browser (CORS), so health is CI-collected data —
+ * server-rendered, zero JS, no false positives.
+ *
+ * The backup link is shown by ActionRow regardless of health; these
+ * alerts only explain degraded states (stale-healthy data never strands
+ * the user because the backup is always visible).
+ */
+import Alert from '../../../shared/ui/Alert.astro';
+
+interface Props {
+  linkHealth: {
+    slides: 'ok' | 'unreachable' | 'unknown';
+    dropbox: 'ok' | 'unreachable' | 'unknown' | 'absent';
+  };
+}
+
+const { linkHealth } = Astro.props;
+
+const slidesDown = linkHealth.slides === 'unreachable';
+const backupDown = linkHealth.dropbox === 'unreachable';
+---
+
+{
+  slidesDown && backupDown ? (
+    <Alert
+      variant="error"
+      title="Both presentation links appear unavailable"
+      message="The last automated check could not reach the Slides or Dropbox links. Ask Harshit for a fresh copy."
+    />
+  ) : slidesDown ? (
+    <Alert
+      variant="warning"
+      title="Presentation unavailable"
+      message="The Google Slides link for this presentation is currently unavailable. You can open a backup copy below."
+    />
+  ) : backupDown ? (
+    <Alert
+      variant="warning"
+      title="Backup may be unavailable"
+      message="The last automated check could not reach the Dropbox backup. The Slides launch above should still work."
+    />
+  ) : null
+}
