@@ -223,3 +223,52 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** fixed multi-tick flushes (still racy), fake timers (brittle against Preact internals).
 - **Consequences:** `waitFor` helper in the island suite; the same pattern applies to Phase C+ island tests.
 - **Date:** 2026-08-04
+
+### D-026 — Detail page keeps both breadcrumb and back link
+
+- **Context:** Design §11.8 specifies a "← Back to Presentations" ghost link on the detail page; Design §12.3 specifies a breadcrumb on the same page. Read together they overlap.
+- **Reasoning:** both are designed elements; removing either would deviate from the approved spec. They serve slightly different wayfinding jobs (one-step return vs full path) and the cost is one small component reuse.
+- **Alternatives:** breadcrumb-only (cleaner, but drops a designed element); back-link-only (drops the §12.3 spec).
+- **Why chosen:** implement the spec exactly; escalate only if design declares one redundant.
+- **Consequences:** two back affordances on detail pages; trivially removable later.
+- **Date:** 2026-08-04
+
+### D-027 — ActionRow composes the shared Button primitive
+
+- **Context:** TAD §24.5 / Dev Plan §11.4 dictate the exact Present-anchor markup ("must be implemented exactly as follows").
+- **Reasoning:** the Phase 1 Button already renders that exact contract (anchor when href, external rel, icon aria-hidden, subtitle inside the element). Composing it avoids duplicating button state logic while preserving the output contract; the disabled/health branches map directly onto Button's disabled mode.
+- **Alternatives:** hand-rolled anchors in ActionRow — rejected: duplicates the polymorphic-button logic the codebase centralised on purpose.
+- **Consequences:** the rendered structure nests label/subtitle in a `btn__text` span (accessible name still = label + subtitle); any future change to the Present contract lives in one place.
+- **Date:** 2026-08-04
+
+### D-028 — Page tests mock astro:content at the boundary
+
+- **Context:** AstroContainer renders island own-markup but not island slot children, and getCollection returns empty in the container — page-level tests would silently assert nothing.
+- **Reasoning:** mocking the content boundary (vi.mock('astro:content')) tests page logic — published-only filter, ordering, data contract, launch URLs — deterministically. Loader/schema behaviour remains covered by build-time Zod validation and the schema contract tests; the real build is the integration proof.
+- **Alternatives:** dist-reading tests (couples to build order; brittle in CI); container-only component tests (miss page logic).
+- **Consequences:** fixtures mirror the seed content shape; schema changes may require fixture updates (cheap, type-adjacent).
+- **Date:** 2026-08-04
+
+### D-029 — Labeled mock seed content for Phase D
+
+- **Context:** routes need content to build; Harshit's real decks are pending (IA-2).
+- **Reasoning:** three schema-valid mocks (one 6-tag to exercise overflow) make every Phase D surface real and testable. Labelling lives in each description ("MOCK SEED CONTENT") plus this log; replacement is deleting three files and adding real ones — no code changes (the FR-17 property exercised early).
+- **Alternatives:** empty collections (routes would build zero pages — weak verification); a schema-level "mock" flag (schema pollution for a temporary need — rejected).
+- **Consequences:** mock decks are publicly visible until replaced; flagged in KNOWN_ISSUES and the completion report.
+- **Date:** 2026-08-04
+
+### D-030 — GalleryController owns the pre-rendered list DOM
+
+- **Context:** the island must filter/sort cards that are server-rendered HTML (invariant I1), not JS-rendered state.
+- **Reasoning:** after mount the island reads the slot's `<ul data-gallery>` once and mutates node order/visibility from then on. Astro passes island slots as constant vdom, so Preact re-renders never overwrite the mutations — the same contract TAD §10.4 defines for RecentRail.
+- **Alternatives:** re-render cards from JSON state in the island (breaks I1 — cards would vanish without JS); CSS-only sorting (impossible).
+- **Consequences:** the data attributes on each `<li>` are a load-bearing contract, tested explicitly.
+- **Date:** 2026-08-04
+
+### D-031 — T-D7 projector dry-run remains a pending manual gate
+
+- **Context:** Dev Plan T-D7 requires validating the Present path on a physical projector/panel with real Slides URLs.
+- **Reasoning:** neither the real content (IA-2) nor the hardware exists in this environment; faking the gate would violate its purpose (it exists precisely because emulators hide projector-class failures).
+- **Alternatives:** mark the gate done on mock URLs — rejected: false assurance on the product's most critical path.
+- **Consequences:** M3's "manually validated on a physical projector" item stays open and is tracked in KNOWN_ISSUES; everything automatable around it (markup contract, URL derivation, backup behaviour) is test-verified.
+- **Date:** 2026-08-04

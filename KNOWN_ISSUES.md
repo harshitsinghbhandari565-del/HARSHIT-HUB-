@@ -11,7 +11,12 @@ Every discovered concern is recorded here — never silently ignored.
 
 ## Current Issues
 
-_None blocking. All quality gates green at Phase 2 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 65/65, build clean; homepage budgets JS ≈16.6 KB gz ≤ 20 KB, CSS 3.4 KB ≤ 15 KB)._
+| # | Item | Status |
+|---|---|---|
+| CI-1 | **T-D7 projector dry-run pending** — the M3 manual gate needs Harshit's real Slides/Dropbox URLs (IA-2) and physical panel access; everything automatable around it is test-verified (D-031) | Open — blocked on content + hardware |
+| CI-2 | **Mock seed content live** — three labeled mock presentations (D-029) render until Harshit's real decks replace them | Open — replacement is a content-only change |
+
+_All quality gates green at Phase 3 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 113/113, build clean; budgets within TAD §14.1 limits — see TEST_REPORT.md)._
 
 ## Technical Debt
 
