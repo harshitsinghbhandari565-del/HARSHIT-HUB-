@@ -1,0 +1,117 @@
+---
+/**
+ * Presentation gallery (Dev Plan T-D3) — static page listing all
+ * PUBLISHED presentations via the content collection (Zod-validated at
+ * build; invariant I5). Default render is "Most Recent"; the
+ * GalleryController island adds subject filter + sort + URL sync by
+ * enhancing this pre-rendered list (invariant I1).
+ */
+import { getCollection } from 'astro:content';
+
+import GalleryController from '../../features/presentations/islands/GalleryController';
+import PresentationCard from '../../features/presentations/components/PresentationCard.astro';
+import { DEFAULT_SORT, sortPresentations } from '../../features/presentations/lib/sorting';
+import BaseLayout from '../../shared/layouts/BaseLayout.astro';
+
+const published = await getCollection('presentations', ({ data }) => data.published);
+
+const presentations = sortPresentations(
+  published.map((entry) => ({
+    slug: entry.id,
+    title: entry.data.title,
+    subject: entry.data.subject,
+    date: entry.data.date,
+    tags: entry.data.tags,
+    dateMs: entry.data.date.getTime(),
+  })),
+  DEFAULT_SORT,
+);
+
+const subjects = Array.from(new Set(presentations.map((p) => p.subject))).sort();
+const count = presentations.length;
+---
+
+<BaseLayout
+  title="Presentations"
+  description="All of Harshit's academic presentations — searchable, sortable, and one click from full-screen."
+  activePath="/presentations"
+>
+  <main id="main-content">
+    <div class="container gallery">
+      <header class="gallery__header">
+        <h1 class="gallery__title">Presentations</h1>
+        <p class="gallery__count">
+          {count} presentation{count === 1 ? '' : 's'}
+        </p>
+      </header>
+
+      <GalleryController client:load subjects={subjects}>
+        <ul class="gallery__grid" data-gallery>
+          {
+            presentations.map((p) => (
+              <li data-subject={p.subject} data-date={p.date.toISOString()} data-title={p.title}>
+                <PresentationCard
+                  slug={p.slug}
+                  title={p.title}
+                  subject={p.subject}
+                  date={p.date}
+                  tags={p.tags}
+                />
+              </li>
+            ))
+          }
+        </ul>
+      </GalleryController>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .gallery {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+  }
+
+  .gallery__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .gallery__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-1);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .gallery__count {
+    color: var(--color-neutral-600); /* Design §14.2 (v2 correction) */
+    font-size: var(--text-body-sm);
+  }
+
+  /* Card grid (Design §14.2): auto-fill, 320px minimum. */
+  .gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min-width)), 1fr));
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Panel breakpoint: larger cards (Design §24.4). */
+  @media (width >= 1920px) {
+    .gallery__grid {
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width-panel), 1fr));
+    }
+  }
+
+  /* Hidden-by-filter cards collapse out of the grid. */
+  .gallery__grid > li[hidden] {
+    display: none;
+  }
+</style>
