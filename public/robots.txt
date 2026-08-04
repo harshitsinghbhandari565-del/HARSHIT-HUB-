@@ -1,0 +1,5 @@
+# TAD §17.4 — environment-aware robots is Phase H work: preview deploys
+# must emit Disallow: / and a smoke test asserts the production value.
+# The Sitemap line activates when the canonical domain is finalized (B7).
+User-agent: *
+Allow: /

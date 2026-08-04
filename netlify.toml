@@ -1,0 +1,45 @@
+# Deployment configuration — TAD §18 / §19.4 (ADR-0009).
+# Netlify is the primary host; the deciding factor is Netlify Forms (no
+# backend code, no secrets — invariant I3). Cloudflare Pages is the
+# documented drop-in alternative.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# ── Security headers (TAD §19.4) ──────────────────────────────────────────
+# CSP arrives in Phase H: report-only first, then enforce (TAD §19.3).
+# Deploying enforcement blind reliably breaks production.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+# ── Caching (TAD §14.7) ───────────────────────────────────────────────────
+# Hashed build assets are immutable; HTML stays fresh via platform defaults.
+
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/search-index.json"
+  [headers.values]
+    Cache-Control = "public, max-age=300, stale-while-revalidate=86400"
+
+# ── Redirects (TAD §6.2) ──────────────────────────────────────────────────
+# Slug changes require permanent redirects; entries are never deleted.
+# [[redirects]]
+#   from = "/presentations/old-slug"
+#   to = "/presentations/new-slug"
+#   status = 301
