@@ -1,19 +1,24 @@
 ---
 /**
- * BaseLayout — TAD §7.3 / Dev Plan T-A6.
+ * BaseLayout — TAD §7.3 / Dev Plan T-A6 (chrome completed in Phase C).
  *
  * The standard HTML shell: <html>/<head>, tokens, global styles, the
- * blocking theme FOUC-guard script, and View Transitions routing.
- * Header/Footer/SeoHead composition arrives in Phase C; pages are thin
- * compositions on top of this shell.
+ * blocking theme FOUC-guard script, View Transitions routing, and the
+ * global chrome — SkipLink, Header (with ThemeToggle + MobileMenu passed
+ * through its actions slot), and Footer. Pages are thin compositions on
+ * top of this shell.
  */
 // Astro 6 exports ClientRouter from astro:transitions (the /client module
 // now carries router utilities only). See DECISIONS.md D-002.
 import { Font } from 'astro:assets';
 import { ClientRouter } from 'astro:transitions';
 
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import MobileMenu from '../components/MobileMenu';
 import SkipLink from '../ui/SkipLink.astro';
-import { SITE_NAME } from '../config/site';
+import { NAV_LINKS, SITE_NAME } from '../config/site';
+import { ThemeToggle } from '../../features/theme';
 import '../styles/tokens.css';
 import '../styles/tokens.dark.css';
 import '../styles/global.css';
@@ -24,16 +29,19 @@ interface Props {
   title: string;
   /** Meta description; required on indexable pages once content lands. */
   description?: string;
+  /** Current route for nav active states (Design §10.2). */
+  activePath?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, activePath = '/' } = Astro.props;
 ---
 
 <!doctype html>
 <!--
   data-theme defaults to light. The FOUC-guard script below sets it to
-  "dark" before first paint ONLY when the stored preference says so —
-  any failure yields light, the classroom-safe state (TAD §12.2).
+  "dark" before first paint ONLY when the stored preference says so AND
+  the device is not a classroom panel (ADR-0011) — any failure yields
+  light, the classroom-safe state (TAD §12.2).
 -->
 <html lang="en" data-theme="light">
   <head>
@@ -54,11 +62,15 @@ const { title, description } = Astro.props;
       preload={[{ weight: 800, style: 'normal' }]}
     />
     <script is:inline>
-      // FOUC prevention (TAD §12.2): synchronous, inline, <200 bytes.
-      // Hash-allowlisted in the CSP once enforcement lands (Phase H).
+      // FOUC prevention (TAD §12.2) + panel theme lock (ADR-0011).
+      // The `js` class enables progressive-enhancement CSS (no-JS users
+      // keep the static nav and never see inert toggles). Synchronous and
+      // inline; hash-allowlisted in the CSP once enforcement lands (Phase H).
+      document.documentElement.classList.add('js');
       try {
         const t = localStorage.getItem('theme');
-        if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+        const panel = matchMedia('(min-width:1920px) and ((pointer:coarse) or (hover:none))');
+        if (t === 'dark' && !panel.matches) document.documentElement.dataset.theme = 'dark';
       } catch {
         // Any failure yields light mode — the classroom-safe default.
       }
@@ -70,7 +82,14 @@ const { title, description } = Astro.props;
   <body>
     <!-- First focusable element — WCAG 2.4.1 (Design §25.2). -->
     <SkipLink />
+    <Header currentPage={activePath}>
+      <Fragment slot="actions">
+        <ThemeToggle client:idle />
+        <MobileMenu client:media="(max-width: 767px)" links={NAV_LINKS} currentPage={activePath} />
+      </Fragment>
+    </Header>
     <slot />
+    <Footer />
   </body>
 </html>
 
@@ -91,5 +110,11 @@ const { title, description } = Astro.props;
       -apple-system,
       sans-serif
     );
+
+    /* ── Chrome tokens (Phase C) ──
+     * Derived from palette tokens so dark mode adapts automatically.
+     * --header-bg: the frosted-glass translucency (Design §11.5's
+     * rgba white 85%) expressed token-based. */
+    --header-bg: color-mix(in srgb, var(--color-white) 85%, transparent);
   }
 </style>

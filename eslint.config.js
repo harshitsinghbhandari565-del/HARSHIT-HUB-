@@ -63,6 +63,27 @@ export default defineConfig(
     },
   },
 
+  // D-023 exception: layouts are the composition root between shared chrome
+  // and app concerns (TAD §7.3 places ThemeToggle inside the header). The
+  // rule's intent — keeping shared primitives domain-free — is preserved:
+  // only layouts may compose feature islands.
+  {
+    files: ['src/shared/layouts/**/*'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/content/**'],
+              message: 'Layouts compose features but never import content directly.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Rule 2: cross-feature imports only through the feature's index.
   {
     files: ['src/features/**/*'],

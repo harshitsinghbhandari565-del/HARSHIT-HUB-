@@ -10,7 +10,11 @@ import BaseLayout from '../shared/layouts/BaseLayout.astro';
 import { SITE_DEFAULT_DESCRIPTION } from '../shared/config/site';
 ---
 
-<BaseLayout title="Home" description={SITE_DEFAULT_DESCRIPTION}>
+<BaseLayout
+  title="Home"
+  description={SITE_DEFAULT_DESCRIPTION}
+  activePath="/"
+>
   <main id="main-content">
     <div class="container stack">
       <h1>Harshit.</h1>

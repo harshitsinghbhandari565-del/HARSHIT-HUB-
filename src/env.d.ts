@@ -11,3 +11,9 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/* CSS Modules (Preact islands — ADR-0002 consequence). */
+declare module '*.module.css' {
+  const classes: Record<string, string>;
+  export default classes;
+}

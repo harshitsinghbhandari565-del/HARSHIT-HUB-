@@ -4,6 +4,7 @@
   "ignoreFiles": [
     "**/tokens.css",
     "**/tokens.dark.css",
+    "**/*.module.css",
     "dist/**",
     "node_modules/**"
   ],
