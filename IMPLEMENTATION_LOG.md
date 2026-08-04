@@ -4,6 +4,51 @@ Chronological implementation history. Entries are appended, never replaced.
 
 ---
 
+## 2026-08-04 — Phase 1: Shared Primitives & Design System (Development Plan Phase B)
+
+### Objectives
+
+Deliver the ten shared UI primitives (Dev Plan §4 Phase B: T-B1…T-B4) with immediate automated accessibility gates, plus the two foundation gaps the initialization phase deferred: self-hosted fonts (TAD §14.5, TD-7) and the icon system (TAD §3.7, D-006). No feature pages, no islands, no product content.
+
+### Work completed
+
+- **Fonts (TAD §14.5):** Inter (400/500/600) and Plus Jakarta Sans (600/700/800) via the Astro 6 Fonts API with the **local provider** — files read from version-pinned `@fontsource` packages, emitted hashed and self-hosted to `dist/_astro/fonts/`, latin subset, `font-display: swap`, metric-adjusted fallback stacks generated (CLS control per TAD §8.6). Design tokens stay verbatim; `--font-body`/`--font-display` are re-pointed at the generated stacks in a BaseLayout component style block with safe fallbacks. `<Font />` injection in the layout head; preload filter tuned to emit **exactly the two first-paint weights** (Inter 400, PJS 800) per TAD §14.5.
+- **Icons (TAD §3.7):** `astro-icon` integration with the local `@iconify-json/lucide` pack — inline SVG at build time, zero runtime JS, no CDN.
+- **Ten primitives in `src/shared/ui/`:** VisuallyHidden, SkipLink, SectionOverline, Tag, Alert, EmptyState, Skeleton, Breadcrumb, IconButton, and the polymorphic Button (anchor/button by `href`, disabled links become disabled buttons, external `noopener noreferrer`, subtitle inside the accessible name — TAD §7.5/§24.5).
+- **Token addition:** `--color-accent-700` for the primary button active state (Design §11.1 value, tokenized per Rule 2 — D-014).
+- **BaseLayout wiring:** SkipLink as the first focusable element; `<Font />` components in head.
+- **Component test stack (T-B4):** Vitest via `getViteConfig` (Astro compiles `.astro` in tests), node environment with jsdom-as-library, Astro Container API rendering, axe-core scans asserting **zero violations** per component, structural contract tests (polymorphism, roles, truncation, mandatory labels, FOUC guard, skip-link target).
+
+### Files created
+
+`src/shared/ui/{VisuallyHidden,SkipLink,SectionOverline,Tag,Alert,EmptyState,Skeleton,Breadcrumb,IconButton,Button}.astro` · `tests/unit/helpers/render.ts` · `tests/unit/components/button.test.ts` · `tests/unit/components/primitives.test.ts`
+
+### Files modified
+
+`astro.config.mjs` (icon integration; fonts config local provider) · `package.json` / `package-lock.json` (astro-icon, @iconify-json/lucide, @fontsource/inter, @fontsource/plus-jakarta-sans, axe-core, jsdom, @types/jsdom) · `.gitignore` (.astro-icon) · `src/shared/styles/tokens.css` (accent-700) · `src/shared/layouts/BaseLayout.astro` (SkipLink, `<Font />` injection, font token wiring) · `vitest.config.ts` (getViteConfig + vitest/config types reference) · `eslint.config.js` (defineConfig migration, .astro-icon ignore)
+
+### Commits made
+
+`chore(icons)` → `feat(tokens)` → `feat(layout)` → `feat(ui): display primitives` → `feat(ui): Breadcrumb/Button family` → `test: Phase B suite` → `feat(ui): VisuallyHidden` → `docs` (this entry). See `git log`.
+
+### Decisions
+
+D-014 (accent-700 token) · D-015 (subject pill styling stays in features/presentations) · D-016 (font wiring & injection mechanics incl. fontsource→local provider journey and first-paint preload filter) · D-017 (Lucide via astro-icon, local pack) · D-018 (component test stack: node env + jsdom-as-library; vitest jsdom environment rejected — it breaks the transform pipeline) · D-019 (Tag paddings follow Design §11.3 spec values verbatim even where off the 4px grid).
+
+### Assumptions
+
+- B9 held: JetBrains Mono not loaded (token retained).
+- Design v1 loading-state details remain unavailable — Skeleton ships a conservative, token-driven placeholder; semantics documented (TD-10).
+- Phase 1 ≙ Development Plan Phase B (Foundation/Phase A was completed as Repository Initialization).
+
+### Outstanding work
+
+- **Phase C**: Header (scroll shadow, tablet "More ▾"), Footer, ThemeToggle island, MobileMenu island, FOUC-validation report (Gate 2 items).
+- TD-10: Skeleton/loading detail spec awaits Design v1.
+- KNOWN_ISSUES FI-1 (ADR file migration) and the rest of the phase roadmap unchanged.
+
+---
+
 ## 2026-08-04 — Repository Initialization (Development Plan Phase A, foundation scope)
 
 ### Objectives

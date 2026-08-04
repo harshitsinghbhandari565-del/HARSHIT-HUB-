@@ -2,9 +2,16 @@
 
 Every discovered concern is recorded here — never silently ignored.
 
+## Resolved (kept for history)
+
+| # | Item | Resolution |
+|---|---|---|
+| TD-7 | Fonts not self-hosted | **Resolved in Phase 1** — Astro Fonts API local provider; hashed self-hosted woff2, latin subset, swap, metric-adjusted fallbacks, first-paint preloads only (D-016) |
+| TD-9 | `astro check` hint in eslint.config.js | **Resolved in Phase 1** — migrated to ESLint core `defineConfig()`; typecheck now 0 errors / 0 warnings / 0 hints |
+
 ## Current Issues
 
-_None blocking. All quality gates green at initialization (typecheck 0 errors, ESLint 0, Stylelint 0, tests 10/10, build clean)._
+_None blocking. All quality gates green at Phase 1 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 32/32, build clean)._
 
 ## Technical Debt
 
@@ -16,9 +23,8 @@ _None blocking. All quality gates green at initialization (typecheck 0 errors, E
 | TD-4 | `robots.txt` is not yet environment-aware (preview deploys should emit `Disallow: /`) | TAD §17.4 | Phase H: build-time robots generation + smoke test asserting the production value |
 | TD-5 | CSP header not yet shipped | TAD §19.3 | Phase H: report-only first, verify all routes/both themes, then enforce |
 | TD-6 | View Transitions focus management (`astro:page-load` handler: focus to `<h1>`, title announcement) not yet implemented | TAD §15.4 | Lands with real navigation in Phase C; must not ship to users without it |
-| TD-7 | Fonts not yet self-hosted/subsetted (token stacks fall back to system fonts) | TAD §14.5 | Phase B via the Astro Fonts API; `fonts/` directory created then |
 | TD-8 | Placeholder favicon | Initialization | Replace when design provides the brand mark |
-| TD-9 | One `astro check` hint in `eslint.config.js` (non-blocking) | Initialization | Investigate if it becomes noisy; hints don't fail gates |
+| TD-10 | Skeleton/loading detailed spec lives in Design v1 (not delivered); current Skeleton is a conservative, token-driven placeholder with documented semantics (aria-hidden; consumers announce loading where needed) | Phase 1 (D-018 era) | Replace/extend when Design v1 loading-state spec arrives |
 
 ## Future Improvements
 
@@ -32,6 +38,8 @@ _None blocking. All quality gates green at initialization (typecheck 0 errors, E
 | FI-6 | Subject filter chips on the gallery | At 25–50 items (TAD §20.2) |
 | FI-7 | Search migration (Pagefind/MiniSearch) | At ~100 items (TAD §20.2) |
 | FI-8 | Decap/TinaCMS over the same Git files | If GitHub-web-UI authoring creates friction (ADR-0004) |
+| FI-9 | Fonts config is the first thing to re-verify on Astro upgrades (local-provider `options.variants` shape, `<Font />` preload filter) | Any Astro minor/major bump (D-016) |
+| FI-10 | Stylelint coverage for `.astro` scoped styles (custom syntax) and shorthand color expansion | When component CSS grows (Phase C, TD from D-013) |
 
 ## Nice-to-Have Enhancements
 

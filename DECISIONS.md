@@ -112,6 +112,8 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Consequences:** Content authors must supply `/present` URLs (the authoring guide's step 2); `slidesUrl` normalization (Phase D) keeps this belt-and-braces.
 - **Date:** 2026-08-04
 
+---
+
 ### D-013 — Stylelint scope at initialization
 
 - **Context:** Stylelint enforces token-only colors and the `neutral-400` text ban on standalone CSS. Astro scoped `<style>` blocks need a custom syntax, and the strict-value plugin (1.11.1) has no shorthand expansion.
@@ -119,4 +121,56 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** (a) full custom-syntax setup now; (b) standalone-CSS scope now, extend later.
 - **Why chosen:** (b) — initialization scope; tracked in KNOWN_ISSUES.
 - **Consequences:** `.astro` styles get lint coverage in a later hardening pass; shorthand color declarations are review-checked until then.
+- **Date:** 2026-08-04
+
+---
+
+### D-014 — `--color-accent-700` token for the primary button active state
+
+- **Context:** Design §11.1 specifies `#1E40AF` for the primary button active state; Design Rule 2 forbids hard-coded hex outside the palette.
+- **Reasoning:** The value must live in the token layer to keep Stylelint's token-only enforcement honest.
+- **Alternatives:** (a) hard-code the hex in the component; (b) reuse accent-600 for active too; (c) add a palette token.
+- **Why chosen:** (c) — same convention Design v2 itself used for `warm-700`/`success-700`; (a) violates Rule 2; (b) makes hover/active indistinguishable by color.
+- **Consequences:** One token added to `tokens.css` (marked ★ with this reference); dark theme needs no override.
+- **Date:** 2026-08-04
+
+### D-015 — Subject-specific pill styling belongs to `features/presentations`
+
+- **Context:** Design §11.3 lists a "Subject tag" variant, but subject→colour mapping is domain knowledge (Science/History/… enum).
+- **Reasoning:** Import rules (TAD §5.1) keep `shared/` free of feature/domain knowledge; `SubjectVisual` is already a `features/presentations` component in the TAD.
+- **Alternatives:** (a) subject variants in the shared Tag; (b) feature-scoped styling over the generic Tag.
+- **Why chosen:** (b) — preserves dependency direction; the generic Tag covers all non-domain variants now.
+- **Consequences:** Phase D's PresentationMeta styles subject pills via feature CSS layered on Tag markup.
+- **Date:** 2026-08-04
+
+### D-016 — Font wiring mechanics (Astro 6 Fonts API)
+
+- **Context:** TAD §14.5 mandates the Fonts API; Astro 6.4's actual mechanics differ from generic expectations.
+- **Findings that shaped the implementation:** (1) `@font-face` + stacks inject only where a `<Font cssVariable />` component is included in the head; (2) font usage collection reads **component styles**, so the token re-pointing (`--font-body` → generated stack) lives in a BaseLayout `<style is:global>` block, not `global.css`; (3) the `fontsource` provider needs `api.fontsource.org` (unreachable in this environment), and the `npm` provider still resolved non-latin files via CDN — so the **local provider** with `src` pointing at the version-pinned `@fontsource` package files is used (deterministic, offline, no binary commits); (4) the preload filter takes variant selectors (`{weight, style}` — no subset field for local files), tuned to the two first-paint weights per TAD §14.5.
+- **Alternatives:** manual `public/fonts` + hand-written `@font-face` — rejected: loses metric-adjusted fallbacks and preload automation the TAD expects.
+- **Consequences:** fonts config is the first thing to re-verify on Astro upgrades (recorded in KNOWN_ISSUES FI-9); `tokens.css` stays verbatim.
+- **Date:** 2026-08-04
+
+### D-017 — Lucide icons via `astro-icon` with the local `@iconify-json` pack
+
+- **Context:** D-006 locked Lucide-via-astro-icon at first use; Phase B is the first use.
+- **Reasoning:** `@iconify-json/lucide` resolves icons from node_modules — no CDN at build time, version-pinned, tree-shaken inline SVG, zero runtime JS.
+- **Alternatives:** CDN-based icon fetching (astro-icon default service) — rejected: build-time network dependency.
+- **Consequences:** `.astro-icon/` cache git-ignored; icon names follow the Design Spec vocabulary.
+- **Date:** 2026-08-04
+
+### D-018 — Component test stack: node env + jsdom-as-library + Container API + axe-core
+
+- **Context:** T-B4 requires Vitest suites proving HTML validity + axe accessibility for all primitives.
+- **Reasoning:** Astro's Container API renders `.astro` components under Vitest when the config is built with `getViteConfig`. Vitest's `jsdom` environment patches globals in a way that breaks esbuild's invariant inside the transform pipeline; running the **node** environment and using jsdom explicitly as a library is deterministic and keeps the pipeline intact. axe-core runs per fragment inside a `<main>` wrapper; contrast in jsdom reports "incomplete" (no rendering), so contrast truth stays with Design §25.1's verified table plus Phase H's real-browser audit.
+- **Alternatives:** happy-dom environment (same class of global-patching risk); Playwright component testing (heavier; arrives with Phase H E2E).
+- **Consequences:** `tests/unit/helpers/render.ts` centralizes render/parse/axe helpers; the pattern extends to Phase C islands (with Preact renderers added then).
+- **Date:** 2026-08-04
+
+### D-019 — Tag paddings follow Design §11.3 spec values verbatim
+
+- **Context:** Design §11.3 specifies `4px 10px` (tags) and `6px 12px` (coming-soon) paddings; 10px sits off the 4px grid that Design Rule 1 generally prescribes.
+- **Reasoning:** the approved component spec is the concrete authority over the general rule; the visuals were reviewed and approved with these values.
+- **Alternatives:** snap to grid (8px/12px) — visible deviation from the approved spec.
+- **Consequences:** the two paddings are documented inline in `Tag.astro`; flagged for the designer to reconcile the grid rule in a future spec revision.
 - **Date:** 2026-08-04
