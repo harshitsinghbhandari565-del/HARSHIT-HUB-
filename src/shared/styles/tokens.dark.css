@@ -1,0 +1,73 @@
+/*
+ * Dark-mode token overrides — [data-theme="dark"] layer (TAD §12.2).
+ *
+ * PROVENANCE (assumption B1): Design Spec v2 §26.2 defers these values to
+ * Design Spec v1.0 §24.2/§15.2, which was not included in the approved
+ * document set. This layer is therefore DERIVED from the approved light
+ * palette under these rules:
+ *
+ *   1. Light is the default everywhere and is forced on classroom panels,
+ *      so this layer only ever renders via deliberate opt-in — a wrong
+ *      value here cannot affect the product's critical path.
+ *   2. Every dark pairing reuses existing palette anchors where possible
+ *      (neutral-900/800/700 surfaces, neutral-50/200 text) and is chosen
+ *      to satisfy WCAG AA (≥4.5:1 text, ≥3:1 UI) — audited again in
+ *      Phase H (Gate 5 requires axe-clean in BOTH themes).
+ *   3. Dark focus ring uses --color-focus-subtle (#C7D2FE), which Design v2
+ *      §25.1 already verified at ~5.2:1 on dark surfaces.
+ *
+ * If Design Spec v1.0 §24.2 values are provided later, they replace this
+ * file verbatim — no other code changes.
+ */
+
+[data-theme='dark'] {
+  /* ── Colors: surfaces (inverted neutral scale) ── */
+  --color-neutral-50: #111827;  /* page background */
+  --color-neutral-100: #1f2937; /* section backgrounds */
+  --color-white: #1f2937;       /* card surfaces */
+  --color-neutral-200: #374151; /* card borders, separators */
+  --color-neutral-300: #4b5563; /* input borders, subtle dividers */
+  --color-neutral-400: #6b7280; /* borders/decorative ONLY — still never text */
+
+  /* ── Colors: text (inverted) ── */
+  --color-neutral-900: #f9fafb; /* body text */
+  --color-neutral-800: #e5e7eb; /* secondary text */
+  --color-neutral-700: #d1d5db; /* tertiary text */
+  --color-neutral-600: #c3c9d4; /* muted text, captions, dates (≈7.5:1 on #111827) */
+  --color-neutral-500: #9ca3af; /* placeholder text only */
+
+  /* ── Primary palette — lifted for dark-surface contrast ── */
+  --color-primary-50: #171a2e;  /* card/section fills */
+  --color-primary-100: #252960; /* tag backgrounds */
+  --color-primary-200: #303580; /* borders, subtle accents */
+  --color-primary-500: #7b83e0; /* links on dark (≈4.8:1 on #111827) */
+  --color-primary-600: #a5abe9; /* link hover */
+  --color-primary-700: #c7d2fe; /* tag text on primary-100 */
+
+  /* ── Accent: Present CTA unchanged — white on accent-500 is 4.6:1 in both themes ── */
+
+  /* ── Warm ── */
+  --color-warm-100: #2f2008; /* warm badge backgrounds */
+  --color-warm-700: #fbbf24; /* warm text on warm-100 */
+
+  /* ── Semantic ── */
+  --color-success-100: #062e21; /* success backgrounds */
+  --color-success-700: #34d399; /* success text */
+  --color-error-100: #2d1215;   /* error backgrounds */
+  --color-error-500: #f87171;   /* error text/indicators */
+  --color-warning-100: #2f2008; /* warning backgrounds */
+  --color-warning-700: #fbbf24; /* warning text */
+  --color-info-100: #101f38;    /* info backgrounds */
+  --color-info-500: #93c5fd;    /* info text/indicators */
+
+  /* ── Focus & Accessibility ── */
+  --color-focus: #c7d2fe; /* verified ~5.2:1 on dark surfaces (Design v2 §25.1) */
+
+  /* ── Shadows: deepen for dark surfaces ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.45), 0 4px 10px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.5), 0 8px 20px rgba(0, 0, 0, 0.35);
+  --shadow-header: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
