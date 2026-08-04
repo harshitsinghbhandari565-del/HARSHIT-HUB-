@@ -174,3 +174,52 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** snap to grid (8px/12px) — visible deviation from the approved spec.
 - **Consequences:** the two paddings are documented inline in `Tag.astro`; flagged for the designer to reconcile the grid rule in a future spec revision.
 - **Date:** 2026-08-04
+
+### D-020 — Tablet "More" dropdown as zero-JS `<details>`/`<summary>`
+
+- **Context:** T-C3 requires a keyboard-focusable CSS dropdown for overflow nav links at 768–899px.
+- **Reasoning:** `<details>` is natively keyboard-operable (Enter/Space toggle, focusable summary) and needs no island — matching the "CSS dropdown" intent with the least machinery. Styled as the Design §12.5 ghost-button "More ▾".
+- **Alternatives:** (a) island-driven dropdown (more JS, hydration on the critical chrome); (b) `:focus-within` CSS-only flyout (no click parity, focus order quirks).
+- **Why chosen:** (a) violates the zero-JS-first default for static chrome; (b) is brittle for keyboard + pointer parity.
+- **Consequences:** auto-close on outside click/Escape is not native to `<details>` — tracked as TD-11; acceptable at this scale.
+- **Date:** 2026-08-04
+
+### D-021 — Panel theme-lock enforcement (ADR-0011 mechanics)
+
+- **Context:** ADR-0011 says panels force light and hide the toggle; the enforcement points needed defining.
+- **Reasoning:** two complementary guards: (1) the FOUC guard checks the panel media query before applying a stored dark preference — so a panel with stale storage never flashes dark; (2) the ThemeToggle hides itself under the same query. Resizing between classes is a documented edge case (a user deliberately darkening on a small window, then casting to a panel, keeps dark until reload).
+- **Alternatives:** CSS-only re-declaration of the entire light palette under the panel query — rejected: duplicates the whole token layer.
+- **Consequences:** the panel query lives once in `theme.ts` (PANEL_QUERY) and is mirrored in CSS where needed; both share the ADR-0011 condition verbatim.
+- **Date:** 2026-08-04
+
+### D-022 — MobileMenu is one island containing trigger + panel
+
+- **Context:** Design §29.2 draws the trigger and the menu as separate header children, but the trigger's `aria-expanded` and the panel's open state are one state machine.
+- **Reasoning:** keeping both in a single island preserves state integrity without cross-island communication (I6) and keeps the trigger out of the static markup where it would otherwise be a dead control pre-hydration.
+- **Alternatives:** static trigger + island panel communicating via DOM events — rejected: implicit coupling between chrome pieces.
+- **Consequences:** MobileMenu lives in `shared/components` (chrome, not domain); it renders its own 44px trigger styled consistently with the IconButton primitive.
+- **Date:** 2026-08-04
+
+### D-023 — Layouts may compose feature islands (import-rule exception)
+
+- **Context:** TAD §5.1 rule 1 forbids `shared/**` importing `features/**`, yet TAD §7.3 places ThemeToggle (a `features/theme` island) inside the header on every page.
+- **Reasoning:** the rule's intent is keeping shared primitives domain-free; the layout is the composition root where chrome islands legitimately join the shell. The exception is scoped to `shared/layouts/**` only — primitives, ui, lib, and components remain feature-free — and layouts still never import content.
+- **Alternatives:** (a) move ThemeToggle into shared (breaks the TAD §5 tree); (b) require every page to pass the toggle through a slot (violates DRY, error-prone).
+- **Consequences:** ESLint encodes the exception with an explanatory message; the boundary stays reviewable.
+- **Date:** 2026-08-04
+
+### D-024 — `js` class on `<html>` for progressive-enhancement CSS
+
+- **Context:** Without JS, the MobileMenu trigger and ThemeToggle are dead controls, and mobile users lose the inline nav.
+- **Reasoning:** the FOUC guard marks `<html>` with `.js` synchronously; CSS then (1) hides non-functional toggles on `html:not(.js)` and (2) keeps the Header's static nav visible as a stacked list on mobile without JS. Invariant I1 is preserved: navigation works with zero JavaScript.
+- **Alternatives:** `<noscript>` style blocks — rejected: fragmented and easy to desync.
+- **Consequences:** one extra class in the guard script; no-JS mobile nav is basic but functional (documented).
+- **Date:** 2026-08-04
+
+### D-025 — Condition-based waits in island tests
+
+- **Context:** island tests raced Preact's deferred render/effect scheduling: fixed `setTimeout(0)` flushes sometimes resolved before effects ran, producing flaky focus/inert assertions.
+- **Reasoning:** tests now poll for observable conditions (e.g. scroll lock proving the open-effect body ran) with a timeout — deterministic and honest about what "settled" means.
+- **Alternatives:** fixed multi-tick flushes (still racy), fake timers (brittle against Preact internals).
+- **Consequences:** `waitFor` helper in the island suite; the same pattern applies to Phase C+ island tests.
+- **Date:** 2026-08-04

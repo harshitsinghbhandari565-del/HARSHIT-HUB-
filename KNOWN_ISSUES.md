@@ -11,7 +11,7 @@ Every discovered concern is recorded here — never silently ignored.
 
 ## Current Issues
 
-_None blocking. All quality gates green at Phase 1 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 32/32, build clean)._
+_None blocking. All quality gates green at Phase 2 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 65/65, build clean; homepage budgets JS ≈16.6 KB gz ≤ 20 KB, CSS 3.4 KB ≤ 15 KB)._
 
 ## Technical Debt
 
@@ -25,6 +25,7 @@ _None blocking. All quality gates green at Phase 1 completion (typecheck 0/0/0, 
 | TD-6 | View Transitions focus management (`astro:page-load` handler: focus to `<h1>`, title announcement) not yet implemented | TAD §15.4 | Lands with real navigation in Phase C; must not ship to users without it |
 | TD-8 | Placeholder favicon | Initialization | Replace when design provides the brand mark |
 | TD-10 | Skeleton/loading detailed spec lives in Design v1 (not delivered); current Skeleton is a conservative, token-driven placeholder with documented semantics (aria-hidden; consumers announce loading where needed) | Phase 1 (D-018 era) | Replace/extend when Design v1 loading-state spec arrives |
+| TD-11 | Tablet "More" `<details>` dropdown does not auto-close on outside click or Escape (native disclosure behavior; D-020) | Phase 2 | If review deems it needed, add a small shared script or promote to an island before Phase F |
 
 ## Future Improvements
 
