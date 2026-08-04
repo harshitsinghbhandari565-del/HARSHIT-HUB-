@@ -1,0 +1,36 @@
+---
+/**
+ * SkipLink — first focusable element on every page; lets keyboard users
+ * jump past the navigation to the main content (Design §25.2, WCAG 2.4.1).
+ * Hidden until focused. Must target the page's <main id="main-content">.
+ */
+---
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: var(--z-toast);
+    padding: var(--space-2) var(--space-4);
+    background-color: var(--color-white);
+    color: var(--color-primary-500);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-300%);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skip-link {
+      transition: none;
+    }
+  }
+</style>
