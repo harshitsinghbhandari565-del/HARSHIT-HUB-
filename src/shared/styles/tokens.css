@@ -20,6 +20,7 @@
   --color-primary-50:  #F4F5FC;
 
   /* Accent */
+  --color-accent-700: #1E40AF;  /* ★ D-014 — primary button active state (Design §11.1); token-ized to satisfy Rule 2 */
   --color-accent-600: #1D4ED8;
   --color-accent-500: #2563EB;
   --color-accent-400: #60A5FA;
