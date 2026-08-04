@@ -1,0 +1,90 @@
+/* GalleryController — filter chips + sort (Design §14.2 row). */
+
+.controller {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  background-color: transparent;
+  border: 1.5px solid var(--color-neutral-300);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default);
+}
+
+.chip:hover {
+  color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+}
+
+.chipActive {
+  color: var(--color-white);
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+}
+
+.chipActive:hover {
+  color: var(--color-white);
+  background-color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sortLabel {
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+}
+
+/* Secondary-button treatment per Design §14.2 ("styled as secondary
+   button with ChevronDown" — the native select arrow is retained for
+   platform affordance; token styling applied). */
+.sortSelect {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-neutral-800);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  background-color: transparent;
+  border: 1.5px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-default);
+}
+
+.sortSelect:hover {
+  border-color: var(--color-primary-500);
+}
+
+.status {
+  margin: 0;
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+}
