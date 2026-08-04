@@ -9,6 +9,7 @@
  */
 // Astro 6 exports ClientRouter from astro:transitions (the /client module
 // now carries router utilities only). See DECISIONS.md D-002.
+import { Font } from 'astro:assets';
 import { ClientRouter } from 'astro:transitions';
 
 import { SITE_NAME } from '../config/site';
@@ -40,6 +41,20 @@ const { title, description } = Astro.props;
     <title>{title} · {SITE_NAME}</title>
     {description && <meta name="description" content={description} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      TAD §14.5 — Astro Fonts API injection point. Each <Font /> emits the
+      @font-face rules, the optimized family stack (cssVariable), and preload
+      hints for first-paint weights. Both families are preload-marked: body
+      text and the hero name (LCP element) render above the fold.
+    -->
+    <Font
+      cssVariable="--font-inter-stack"
+      preload={['@fontsource/inter/files/inter-latin-400-normal.woff2']}
+    />
+    <Font
+      cssVariable="--font-plus-jakarta-sans-stack"
+      preload={['@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff2']}
+    />
     <script is:inline>
       // FOUC prevention (TAD §12.2): synchronous, inline, <200 bytes.
       // Hash-allowlisted in the CSP once enforcement lands (Phase H).
@@ -58,3 +73,23 @@ const { title, description } = Astro.props;
     <slot />
   </body>
 </html>
+
+<style is:global>
+  /* ── Font token wiring (TAD §14.5) ──
+   * tokens.css stays verbatim (Design §26.1). The Astro Fonts API generates
+   * optimized family stacks (self-hosted files, latin subset, metric-adjusted
+   * fallbacks) as CSS variables; we re-point the design tokens at them here.
+   * The inline fallbacks keep rendering correct if the font stack is absent.
+   * This block lives in a component style (not global.css) because the Astro
+   * compiler collects font usage from component styles only. */
+  :root {
+    --font-body: var(--font-inter-stack, 'Inter', system-ui, -apple-system, sans-serif);
+    --font-display: var(
+      --font-plus-jakarta-sans-stack,
+      'Plus Jakarta Sans',
+      system-ui,
+      -apple-system,
+      sans-serif
+    );
+  }
+</style>
