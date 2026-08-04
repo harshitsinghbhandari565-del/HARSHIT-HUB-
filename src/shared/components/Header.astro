@@ -1,0 +1,346 @@
+---
+/**
+ * Header — global chrome (Dev Plan T-C1 + T-C3, Design §11.5 / §12.5).
+ *
+ * Frosted-glass sticky header with a solid fallback (Design §28.4 /
+ * §11.5): opaque where backdrop-filter is unsupported and on panel
+ * breakpoints. Scroll shadow toggles a class via inline script
+ * (TAD §7.2: class toggles are not island-worthy).
+ *
+ * Composition (TAD §7.3): brand + inline nav (desktop/tablet) + actions
+ * slot, into which BaseLayout passes ThemeToggle and MobileMenu. The
+ * header itself stays feature-free (import rules, D-023).
+ *
+ * Tablet 768–899px (T-C3): the overflow link collapses into a
+ * keyboard-operable, zero-JS <details> "More" dropdown (D-020).
+ */
+import { Icon } from 'astro-icon/components';
+
+import { NAV_LINKS } from '../config/site';
+
+interface Props {
+  currentPage?: string;
+}
+
+const { currentPage = '/' } = Astro.props;
+
+// The last nav link is the overflow candidate for the tablet dropdown
+// (Design §12.5: "Contact, and any future sections").
+const inlineLinks = NAV_LINKS.slice(0, -1);
+const overflowLinks = NAV_LINKS.slice(-1);
+
+const isActive = (href: string) => href === currentPage;
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a class="header__brand" href="/">
+      Harshit<span class="header__brand-dot" aria-hidden="true">.</span>
+    </a>
+
+    <nav class="header__nav" aria-label="Primary">
+      <ul class="header__nav-list">
+        {
+          inlineLinks.map((link) => (
+            <li class="header__nav-item">
+              <a
+                class="header__nav-link"
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+        {
+          overflowLinks.map((link) => (
+            <li class="header__nav-item header__nav-item--overflow">
+              <a
+                class="header__nav-link"
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="header__nav-item header__nav-item--more">
+          <details class="more">
+            <summary class="more__summary">
+              More
+              <Icon name="lucide:chevron-down" class="more__chevron" aria-hidden="true" />
+            </summary>
+            <ul class="more__menu">
+              {
+                overflowLinks.map((link) => (
+                  <li>
+                    <a
+                      class="more__link"
+                      href={link.href}
+                      aria-current={isActive(link.href) ? 'page' : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </details>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <slot name="actions" />
+    </div>
+  </div>
+</header>
+
+<script>
+  // Scroll shadow (Design §29.5: 200ms ease-default; reduced-motion
+  // disables the transition globally). Progressive enhancement: without
+  // JS there is simply no shadow.
+  const header = document.querySelector('.header');
+  if (header) {
+    const update = () => header.classList.toggle('header--scrolled', window.scrollY > 10);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+  }
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    height: var(--header-height-mobile);
+    background-color: var(--header-bg);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-neutral-200);
+    transition: box-shadow var(--duration-normal) var(--ease-default);
+  }
+
+  /* Solid fallback — unsupported browsers and panels (Design §11.5). */
+  @supports not (backdrop-filter: blur(1px)) {
+    .header {
+      background-color: var(--color-white);
+      backdrop-filter: none;
+    }
+  }
+
+  @media (width >= 768px) {
+    .header {
+      height: var(--header-height);
+    }
+  }
+
+  @media (width >= 1920px) {
+    .header {
+      background-color: var(--color-white);
+      backdrop-filter: none;
+    }
+  }
+
+  .header--scrolled {
+    box-shadow: var(--shadow-header);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    height: 100%;
+  }
+
+  .header__brand {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-4);
+    font-weight: 700;
+    color: var(--color-primary-900);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header__brand-dot {
+    color: var(--color-accent-500); /* brand signature (Design §11.7) */
+  }
+
+  .header__nav {
+    flex: 1;
+  }
+
+  .header__nav-list {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header__nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-neutral-600);
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  .header__nav-link:hover {
+    color: var(--color-neutral-900);
+  }
+
+  .header__nav-link[aria-current='page'] {
+    color: var(--color-primary-500);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--color-primary-500);
+    text-underline-offset: 4px;
+  }
+
+  /* Panel layout: larger nav text (Design §24.4). */
+  @media (width >= 1920px) {
+    .header__nav-link {
+      min-height: 52px;
+      font-size: var(--text-body-lg);
+    }
+  }
+
+  /* ── Responsive nav switching (Design §29.4) ── */
+
+  /* Mobile: inline nav hidden — the MobileMenu island takes over.
+     Without JS the island trigger is hidden, so the inline nav remains
+     the accessible path (I1). */
+  @media (width <= 767px) {
+    .header__nav {
+      display: none;
+    }
+
+    :global(html:not(.js)) .header__nav {
+      display: block;
+    }
+
+    :global(html:not(.js)) .header__nav-list {
+      flex-wrap: wrap;
+    }
+  }
+
+  /* Tablet 768–899px: overflow links collapse into the More dropdown. */
+  @media (width >= 768px) and (width <= 899px) {
+    .header__nav-item--overflow {
+      display: none;
+    }
+  }
+
+  /* ≥900px: all links inline — no dropdown. */
+  @media (width >= 900px) {
+    .header__nav-item--more {
+      display: none;
+    }
+  }
+
+  /* <768px: dropdown irrelevant (menu island). */
+  @media (width <= 767px) {
+    .header__nav-item--more {
+      display: none;
+    }
+  }
+
+  /* ── More dropdown (T-C3, D-020): zero-JS details/summary ── */
+  .more {
+    position: relative;
+  }
+
+  .more__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-neutral-600);
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  .more__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .more__summary:hover {
+    color: var(--color-neutral-900);
+  }
+
+  .more__chevron {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--duration-fast) var(--ease-default);
+  }
+
+  .more[open] .more__chevron {
+    transform: rotate(180deg);
+  }
+
+  .more__menu {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    right: 0;
+    z-index: var(--z-dropdown);
+    min-width: 160px;
+    margin: 0;
+    padding: var(--space-2);
+    list-style: none;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+
+  .more__link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-neutral-600);
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .more__link:hover {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+
+  .more__link[aria-current='page'] {
+    color: var(--color-primary-500);
+    font-weight: 600;
+  }
+
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header,
+    .header__nav-link,
+    .more__summary,
+    .more__chevron {
+      transition: none;
+    }
+  }
+</style>
