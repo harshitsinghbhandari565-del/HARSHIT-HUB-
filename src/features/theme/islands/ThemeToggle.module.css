@@ -1,0 +1,44 @@
+/* ThemeToggle — 44px icon control (Design §11.1 touch target). */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-neutral-600);
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.toggle:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Panels force light and hide the toggle (Design §17.1, ADR-0011). */
+@media (width >= 1920px) and ((pointer: coarse) or (hover: none)) {
+  .toggle {
+    display: none;
+  }
+}
+
+/* Without JS the control cannot work — hide it (light default stands). */
+:global(html:not(.js)) .toggle {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle {
+    transition: none;
+  }
+}
