@@ -1,0 +1,20 @@
+---
+/**
+ * TEMPORARY route shell (Repository Initialization only).
+ *
+ * Establishes the routing foundation and gives the build/deploy pipeline a
+ * verifiable page. The designed homepage (hero + recent/latest rail +
+ * teasers) replaces this wholesale in Phase E — no markup here survives.
+ */
+import BaseLayout from '../shared/layouts/BaseLayout.astro';
+import { SITE_DEFAULT_DESCRIPTION } from '../shared/config/site';
+---
+
+<BaseLayout title="Home" description={SITE_DEFAULT_DESCRIPTION}>
+  <main id="main-content">
+    <div class="container stack">
+      <h1>Harshit.</h1>
+      <p>Foundation initialized — the homepage arrives in Phase E.</p>
+    </div>
+  </main>
+</BaseLayout>

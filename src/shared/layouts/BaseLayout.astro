@@ -1,0 +1,60 @@
+---
+/**
+ * BaseLayout — TAD §7.3 / Dev Plan T-A6.
+ *
+ * The standard HTML shell: <html>/<head>, tokens, global styles, the
+ * blocking theme FOUC-guard script, and View Transitions routing.
+ * Header/Footer/SeoHead composition arrives in Phase C; pages are thin
+ * compositions on top of this shell.
+ */
+// Astro 6 exports ClientRouter from astro:transitions (the /client module
+// now carries router utilities only). See DECISIONS.md D-002.
+import { ClientRouter } from 'astro:transitions';
+
+import { SITE_NAME } from '../config/site';
+import '../styles/tokens.css';
+import '../styles/tokens.dark.css';
+import '../styles/global.css';
+import '../styles/utilities.css';
+
+interface Props {
+  /** Page title — rendered as "{title} · {SITE_NAME}" (TAD §17.2). */
+  title: string;
+  /** Meta description; required on indexable pages once content lands. */
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<!--
+  data-theme defaults to light. The FOUC-guard script below sets it to
+  "dark" before first paint ONLY when the stored preference says so —
+  any failure yields light, the classroom-safe state (TAD §12.2).
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {SITE_NAME}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script is:inline>
+      // FOUC prevention (TAD §12.2): synchronous, inline, <200 bytes.
+      // Hash-allowlisted in the CSP once enforcement lands (Phase H).
+      try {
+        const t = localStorage.getItem('theme');
+        if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch {
+        // Any failure yields light mode — the classroom-safe default.
+      }
+    </script>
+    <!-- TAD §6.5: View Transitions over real navigations (no client router). -->
+    <ClientRouter fallback="swap" />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
