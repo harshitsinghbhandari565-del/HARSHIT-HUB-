@@ -10,6 +10,10 @@ import axe from 'axe-core';
 import { JSDOM } from 'jsdom';
 import { expect } from 'vitest';
 
+// Preact server renderer so the container can render island components
+// (ThemeToggle, MobileMenu) inside layouts.
+import preactRenderer from '@astrojs/preact/server.js';
+
 /** Anything the container accepts as a renderable component. */
 export type RenderableComponent = Parameters<AstroContainer['renderToString']>[0];
 
@@ -20,7 +24,9 @@ export interface RenderOptions {
 
 /** Render an Astro component to an HTML string. */
 export async function render(component: RenderableComponent, options: RenderOptions = {}) {
-  const container = await AstroContainer.create();
+  const container = await AstroContainer.create({
+    renderers: [{ name: '@astrojs/preact', ssr: preactRenderer }],
+  });
   return container.renderToString(component, {
     props: options.props,
     slots: options.slots,
