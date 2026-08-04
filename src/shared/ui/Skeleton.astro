@@ -1,0 +1,69 @@
+---
+/**
+ * Skeleton — loading placeholder shapes (Design §19; detailed spec lives
+ * in Design v1 — tracked in KNOWN_ISSUES). Decorative by construction:
+ * aria-hidden, and consumers pair it with an appropriate loading
+ * announcement where needed.
+ *
+ * Motion respects prefers-reduced-motion via the global block.
+ */
+interface Props {
+  variant?: 'text' | 'heading' | 'card';
+  lines?: number;
+}
+
+const { variant = 'text', lines = 3 } = Astro.props;
+const count = variant === 'heading' ? 1 : Math.max(1, lines);
+---
+
+{
+  variant === 'card' ? (
+    <div class="skeleton skeleton--card" aria-hidden="true" />
+  ) : (
+    <div class="skeleton-group" aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          class:list={['skeleton', variant === 'heading' ? 'skeleton--heading' : 'skeleton--text']}
+          style={variant === 'text' && i === count - 1 ? 'width: 60%;' : undefined}
+        />
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .skeleton-group {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .skeleton {
+    border-radius: var(--radius-sm);
+    background-color: var(--color-neutral-200);
+    animation: skeleton-pulse calc(var(--duration-deliberate) * 3) var(--ease-default) infinite
+      alternate;
+  }
+
+  .skeleton--text {
+    height: 1em;
+  }
+
+  .skeleton--heading {
+    height: var(--text-heading-3);
+    width: 50%;
+  }
+
+  .skeleton--card {
+    height: 240px;
+    border-radius: var(--radius-xl);
+  }
+
+  @keyframes skeleton-pulse {
+    from {
+      background-color: var(--color-neutral-200);
+    }
+    to {
+      background-color: var(--color-neutral-100);
+    }
+  }
+</style>

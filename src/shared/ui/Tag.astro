@@ -1,0 +1,58 @@
+---
+/**
+ * Tag — non-interactive pill (Design §11.3).
+ *
+ * Variants per the design table. Subject-specific pills are intentionally
+ * NOT a variant here: subject colors are domain knowledge and are styled
+ * in features/presentations when PresentationMeta lands (Phase D, D-015).
+ */
+interface Props {
+  label: string;
+  variant?: 'content' | 'recent' | 'success' | 'error' | 'coming-soon';
+}
+
+const { label, variant = 'content' } = Astro.props;
+---
+
+<span class:list={['tag', `tag--${variant}`]}>{label}</span>
+
+<style>
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) 10px; /* Design §11.3 spec value */
+    border-radius: var(--radius-sm);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .tag--content {
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-700);
+  }
+
+  .tag--recent {
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--color-warm-100);
+    color: var(--color-warm-700); /* ★ warm-700 on warm-100 = 4.6:1 (Design §25.1) */
+  }
+
+  .tag--success {
+    background-color: var(--color-success-100);
+    color: var(--color-success-700);
+  }
+
+  .tag--error {
+    background-color: var(--color-error-100);
+    color: var(--color-error-500); /* 4.6:1 on error-100 (Design §25.1) */
+  }
+
+  .tag--coming-soon {
+    padding: 6px var(--space-3); /* Design §11.3 spec value */
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-600); /* ★ neutral-400 is forbidden for text (Rule 11) */
+    border: 1px dashed var(--color-neutral-300);
+  }
+</style>
