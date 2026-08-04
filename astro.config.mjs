@@ -3,6 +3,7 @@ import process from 'node:process';
 
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
+import icon from 'astro-icon';
 import { defineConfig, fontProviders } from 'astro/config';
 
 /**
@@ -22,6 +23,9 @@ export default defineConfig({
     preact(),
     // TAD §3.7 / §17.4: sitemap generated from real routes — never hand-maintained.
     sitemap(),
+    // TAD §3.7 + D-006: build-time inline SVG icons (Lucide via @iconify-json).
+    // Zero runtime JS; icon names follow the Design Spec vocabulary.
+    icon(),
   ],
   /**
    * TAD §14.5 / §3.7 — Astro Fonts API (native to Astro 6), local provider.

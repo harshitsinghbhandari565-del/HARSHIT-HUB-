@@ -7,6 +7,7 @@ dist/
 
 # Generated types and caches
 .astro/
+.astro-icon/
 
 # Environment files (never commit secrets — architecture invariant I3)
 .env
