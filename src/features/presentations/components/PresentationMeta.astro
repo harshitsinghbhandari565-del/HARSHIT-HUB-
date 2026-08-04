@@ -1,0 +1,96 @@
+---
+/**
+ * PresentationMeta — subject pill + date with calendar icon
+ * (Design §11.2 card meta / §11.8 detail meta row, Dev Plan T-D1).
+ * Text uses neutral-600 (v2 correction).
+ */
+import { Icon } from 'astro-icon/components';
+
+import { formatDate } from '../../../shared/lib/formatDate';
+import type { Subject } from '../../../shared/config/subjects';
+
+interface Props {
+  subject: Subject;
+  date: Date;
+  /** 'card' renders caption-sized; 'detail' renders body-sm (Design §11.8). */
+  size?: 'card' | 'detail';
+}
+
+const { subject, date, size = 'card' } = Astro.props;
+---
+
+<div class:list={['meta', `meta--${size}`]}>
+  <span class:list={['meta__subject', `meta__subject--${subject.toLowerCase()}`]}>
+    {subject}
+  </span>
+  <span class="meta__separator" aria-hidden="true">·</span>
+  <span class="meta__date">
+    <Icon name="lucide:calendar" class="meta__icon" aria-hidden="true" />
+    <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>
+  </span>
+</div>
+
+<style>
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-neutral-600);
+  }
+
+  .meta--card {
+    font-size: var(--text-caption);
+  }
+
+  .meta--detail {
+    font-size: var(--text-body-sm);
+  }
+
+  .meta__subject {
+    padding: var(--space-1) 10px; /* Design §11.3 tag spec (D-019) */
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+
+  /* Subject pill tones — 10%/80% treatment per Design §11.2, token-based. */
+  .meta__subject--science {
+    background-color: color-mix(in srgb, var(--color-success-500) 10%, transparent);
+    color: var(--color-success-700);
+  }
+
+  .meta__subject--history {
+    background-color: var(--color-warm-100);
+    color: var(--color-warm-700);
+  }
+
+  .meta__subject--english {
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-700);
+  }
+
+  .meta__subject--geography {
+    background-color: color-mix(in srgb, var(--color-accent-500) 10%, transparent);
+    color: var(--color-accent-600);
+  }
+
+  .meta__subject--math {
+    background-color: var(--color-warning-100);
+    color: var(--color-warning-700);
+  }
+
+  .meta__separator {
+    color: var(--color-neutral-400); /* decorative only (Rule 11) */
+  }
+
+  .meta__date {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .meta__icon {
+    width: 14px;
+    height: 14px;
+  }
+</style>

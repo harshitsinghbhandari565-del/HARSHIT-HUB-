@@ -1,0 +1,44 @@
+---
+/**
+ * SubjectVisual — subject gradient visual identifier (Design §11.2.1,
+ * Dev Plan T-D1). Decorative by construction: the subject is always
+ * present as text elsewhere, so the gradient is aria-hidden (never
+ * colour alone — Design §25.1 note).
+ *
+ * Gradient recipes live in shared/config/subjects.ts (Dev Plan §11.6);
+ * subject-specific styling stays in this feature (D-015).
+ */
+import { SUBJECT_GRADIENTS, type Subject } from '../../../shared/config/subjects';
+
+interface Props {
+  subject: Subject;
+  /** Block height in px — 120 on cards, 240 on detail (Design §11.2/§11.8). */
+  height?: number;
+  /** 'card' rounds only the top corners; 'detail' rounds the whole block. */
+  shape?: 'card' | 'detail';
+}
+
+const { subject, height = 120, shape = 'card' } = Astro.props;
+const gradient = SUBJECT_GRADIENTS[subject] ?? SUBJECT_GRADIENTS.Science;
+---
+
+<div
+  class:list={['subject-visual', `subject-visual--${shape}`]}
+  style={{ height: `${height}px`, background: gradient }}
+  aria-hidden="true"
+  data-subject={subject}
+></div>
+
+<style>
+  .subject-visual {
+    width: 100%;
+  }
+
+  .subject-visual--card {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .subject-visual--detail {
+    border-radius: var(--radius-xl);
+  }
+</style>
