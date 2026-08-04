@@ -1,6 +1,12 @@
-import { defineConfig } from 'vitest/config';
+/// <reference types="vitest/config" />
+import { getViteConfig } from 'astro/config';
 
-export default defineConfig({
+/**
+ * getViteConfig wraps the project's Astro config so Vitest can compile
+ * .astro components and resolve integrations (astro-icon) — required for
+ * the Phase B component suite (T-B4) via the astro/container API.
+ */
+export default getViteConfig({
   test: {
     environment: 'node',
     include: ['tests/unit/**/*.test.ts'],

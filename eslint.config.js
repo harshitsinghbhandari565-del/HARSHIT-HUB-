@@ -8,26 +8,40 @@
  *   3. pages/ contain no business logic and never import content files
  */
 import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import astro from 'eslint-plugin-astro';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default defineConfig(
   {
-    ignores: ['dist/**', 'node_modules/**', '.astro/**', 'coverage/**'],
+    ignores: ['dist/**', 'node_modules/**', '.astro/**', '.astro-icon/**', 'coverage/**'],
   },
 
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...astro.configs['flat/recommended'],
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    rules: {
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+
+  {
+    extends: [...astro.configs['flat/recommended']],
+  },
 
   // Accessibility lint on islands (Preact JSX) — TAD §15.5 authoring layer.
   {
     files: ['**/*.tsx'],
-    plugins: { 'jsx-a11y': jsxA11y },
-    rules: {
-      ...jsxA11y.configs.recommended.rules,
-    },
+    extends: [jsxA11y.flatConfigs.recommended],
   },
 
   // Rule 1: shared code must never import from features/ or content/.
@@ -82,21 +96,6 @@ export default tseslint.config(
                 'pages/ compose features and shared code; content access goes through astro:content (TAD §5.1 rule 3).',
             },
           ],
-        },
-      ],
-    },
-  },
-
-  {
-    rules: {
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-          ignoreRestSiblings: true,
         },
       ],
     },
