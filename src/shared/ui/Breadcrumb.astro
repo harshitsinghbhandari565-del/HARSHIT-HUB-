@@ -1,0 +1,73 @@
+---
+/**
+ * Breadcrumb — contextual wayfinding (Design §12.3), presentation detail
+ * pages first. Separators are decorative; the current page is not a link
+ * and carries aria-current="page". Long final labels truncate at 30
+ * characters with the full text preserved in the title attribute.
+ */
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+
+const truncate = (label: string) =>
+  label.length > 30 ? `${label.slice(0, 30).trimEnd()}…` : label;
+---
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <ol class="breadcrumb__list">
+    {
+      items.map((item, i) => {
+        const isLast = i === items.length - 1;
+        return (
+          <li class="breadcrumb__item">
+            {isLast ? (
+              <span class="breadcrumb__current" aria-current="page" title={item.label}>{truncate(item.label)}</span>
+            ) : (
+              <a class="breadcrumb__link" href={item.href}>{truncate(item.label)}</a>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--text-body-sm);
+  }
+
+  .breadcrumb__item + .breadcrumb__item::before {
+    content: '/';
+    margin-right: var(--space-2);
+    color: var(--color-neutral-500); /* Design §12.3 separator */
+  }
+
+  .breadcrumb__link {
+    color: var(--color-neutral-600);
+    text-decoration: none;
+  }
+
+  .breadcrumb__link:hover {
+    color: var(--color-neutral-900);
+    text-decoration: underline;
+  }
+
+  .breadcrumb__current {
+    color: var(--color-neutral-800); /* current page, not a link */
+  }
+</style>
