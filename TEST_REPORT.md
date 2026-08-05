@@ -11,6 +11,19 @@ Methodology notes (apply to all entries):
 
 ---
 
+## Content Update — first real presentation: "Indigo (Chapter 5)"
+
+**Date:** 2026-08-06 (content-only change; no architecture/UI/design changes)
+
+- Replaced the `poetry-of-the-romantics` mock with `src/content/presentations/indigo-chapter-5.json` (subject English, 9 tags, published). Subject mapped to the existing enum value `English` — "English Reader" carried as a tag (adding an enum value would be a schema change, out of scope). Slides URL stored in the schema-required `/present` form (deck id `1Ce8sDcOjx-bY1F7mSpOonBKvUS8JsGvB`); Dropbox backup keeps its `rlkey`/`st` params with `dl=0` preview (ADR-0012). Description stored plain-text (414 chars ≤ 500; Markdown emphasis markers removed).
+- **Validation:** Zod content contract passed at build (invariant I5); full rebuild clean (12 pages).
+- **Verification:** gallery card + subject filter attribute render; detail page h1/description/Present/Backup correct; search index entry correct; matcher re-probed on the real index — title (full/partial), subject, single-word tags, and multi-word-tag leading-word prefixes all find it; second-word-only queries ("gandhi", "fischer") and full multi-word phrases score zero **by approved design** (TAD §11.2: tag exact/prefix per token, AND across tokens); descriptions are not indexed by design; sitemap/JSON-LD updated automatically (CollectionPage newest-first, PresentationDigitalDocument + BreadcrumbList valid, escape-safe). One content-coupled integration assertion (ItemList first item) updated to the new newest deck.
+- **External links:** Slides `/present` verified live (18-slide Indigo deck, exact content match); Dropbox preview verified live (Indigo_Presentation.pptx, shared by the owner). Full in-browser launch remains the T-D7 panel dry-run.
+- **Gates after the change:** 250/250 tests · typecheck 0/0/0 · ESLint 0 · Stylelint 0 · budgets OK · CSP regenerated + in sync · robots/link-check/audit OK.
+- No schema fields added: the schema has no display-title or thumbnail fields; the subject-visual fallback renders unchanged (as instructed, no new thumbnail).
+
+---
+
 ## Phase 7 — Hardening & Release Candidate (Development Plan Phase H)
 
 **Date:** 2026-08-05

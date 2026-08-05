@@ -83,7 +83,8 @@ Every remaining placeholder in the codebase (Phase 7 content audit — recorded,
 
 | Placeholder | Location | Replacement |
 |---|---|---|
-| ⬜ 3 mock presentations (titles, Slides/Dropbox URLs, descriptions) | `src/content/presentations/*.json` | Harshit's real decks (IA-2) — see docs/ADDING-A-PRESENTATION.md |
+| ⬜ Remaining 2 mock presentations (titles, Slides/Dropbox URLs, descriptions) | `src/content/presentations/{photosynthesis,french-revolution}.json` | Harshit's real decks (IA-2) — see docs/ADDING-A-PRESENTATION.md |
+| ✅ Real presentation #1 — "Indigo (Chapter 5)" | `src/content/presentations/indigo-chapter-5.json` (replaced the `poetry-of-the-romantics` mock, 2026-08-06) | Slides + Dropbox links verified live |
 | ⬜ Mock tagline | `SITE_TAGLINE` in `src/shared/config/site.ts` | Real tagline (IA-2) |
 | ⬜ Mock About teaser | `SITE_ABOUT_TEASER` in `src/shared/config/site.ts` | Real copy (IA-2) |
 | ⬜ Mock Contact teaser | `SITE_CONTACT_TEASER` in `src/shared/config/site.ts` | Real copy (IA-2) |

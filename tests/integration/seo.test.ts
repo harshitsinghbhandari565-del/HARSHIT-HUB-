@@ -74,7 +74,8 @@ describe.skipIf(!existsSync(DIST))('JSON-LD structured data (TAD §17.3)', () =>
     expect(list['@type']).toBe('ItemList');
     const items = list.itemListElement as Array<Record<string, unknown>>;
     expect(items.length).toBeGreaterThan(0);
-    expect(items[0].name).toBe('Photosynthesis: How Plants Make Food');
+    // ItemList follows the gallery's default date-desc order: newest first.
+    expect(items[0].name).toBe('Indigo (Chapter 5)');
   });
 
   it('detail emits PresentationDigitalDocument + matching BreadcrumbList', () => {
