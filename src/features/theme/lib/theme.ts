@@ -62,3 +62,34 @@ export function initialTheme(
 ): Theme {
   return stored === 'dark' && !panelLocked ? 'dark' : 'light';
 }
+
+/**
+ * Wire the theme toggle control (D-038). Pure DOM logic so it is
+ * unit-testable without eval; the ThemeToggle component's bundled script
+ * calls this on load. Idempotent per document.
+ */
+export function initThemeToggle(doc: Document): void {
+  const toggle = doc.querySelector<HTMLElement>('[data-theme-toggle]');
+  if (!toggle) return;
+
+  const sync = () => {
+    const dark = doc.documentElement.dataset.theme === 'dark';
+    toggle.setAttribute('aria-pressed', String(dark));
+    toggle.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+    toggle.toggleAttribute('data-dark', dark);
+  };
+
+  toggle.addEventListener('click', () => {
+    const dark = doc.documentElement.dataset.theme === 'dark';
+    const next = dark ? 'light' : 'dark';
+    doc.documentElement.dataset.theme = next;
+    try {
+      globalThis.localStorage?.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      // Storage unavailable — theme applies for this visit only.
+    }
+    sync();
+  });
+
+  sync();
+}

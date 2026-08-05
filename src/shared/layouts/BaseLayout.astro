@@ -18,6 +18,7 @@ import Header from '../components/Header.astro';
 import MobileMenu from '../components/MobileMenu';
 import SkipLink from '../ui/SkipLink.astro';
 import { NAV_LINKS, SITE_NAME } from '../config/site';
+import SearchOverlay from '../../features/search/islands/SearchOverlay.astro';
 import { ThemeToggle } from '../../features/theme';
 import '../styles/tokens.css';
 import '../styles/tokens.dark.css';
@@ -84,7 +85,9 @@ const { title, description, activePath = '/' } = Astro.props;
     <SkipLink />
     <Header currentPage={activePath}>
       <Fragment slot="actions">
-        <ThemeToggle client:idle />
+        <!-- Vanilla-script components (D-038): no hydration directives. -->
+        <SearchOverlay />
+        <ThemeToggle />
         <MobileMenu client:media="(max-width: 767px)" links={NAV_LINKS} currentPage={activePath} />
       </Fragment>
     </Header>
@@ -116,5 +119,7 @@ const { title, description, activePath = '/' } = Astro.props;
      * --header-bg: the frosted-glass translucency (Design §11.5's
      * rgba white 85%) expressed token-based. */
     --header-bg: color-mix(in srgb, var(--color-white) 85%, transparent);
+    /* Overlay scrim — adapts automatically in dark mode (neutral-900 flips). */
+    --scrim: color-mix(in srgb, var(--color-neutral-900) 45%, transparent);
   }
 </style>
