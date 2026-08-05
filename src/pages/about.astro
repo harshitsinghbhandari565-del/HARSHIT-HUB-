@@ -1,0 +1,123 @@
+---
+/**
+ * About page (Dev Plan T-G1, PRD §15.6) — long-form content from the
+ * content layer (content/site/about.md, TAD §5). Content is real Markdown,
+ * not hard-coded markup (I4); the current copy is a labelled mock until
+ * Harshit's biography arrives (IA-2).
+ *
+ * Layout follows Design §24.2: visual left, text right (two columns from
+ * 768px). The profile visual is a decorative gradient placeholder until a
+ * profile image is provided (IA-2 / TD-12 family).
+ */
+import { getCollection, render } from 'astro:content';
+
+import Breadcrumb from '../shared/ui/Breadcrumb.astro';
+import BaseLayout from '../shared/layouts/BaseLayout.astro';
+
+const aboutEntries = await getCollection('about');
+const entry = aboutEntries[0];
+// Astro 6 content layer: render(entry) → { Content } (D-041).
+const { Content } = entry ? await render(entry) : { Content: null };
+---
+
+<BaseLayout
+  title="About"
+  description="About Harshit — student, presenter, and builder."
+  activePath="/about"
+>
+  <main id="main-content">
+    <div class="container about">
+      <Breadcrumb
+        items={[{ label: 'Home', href: '/' }, { label: 'About' }]}
+      />
+
+      <div class="about__layout">
+        <div class="about__visual" aria-hidden="true"></div>
+
+        <div class="about__content">
+          <h1 class="about__title">About Harshit</h1>
+          {
+            Content && (
+              <div class="about-prose">
+                <Content />
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .about {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+  }
+
+  .about__layout {
+    display: grid;
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  /* Design §24.2: two columns (visual left, text right) from 768px. */
+  @media (width >= 768px) {
+    .about__layout {
+      grid-template-columns: 2fr 3fr;
+    }
+  }
+
+  .about__visual {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-100),
+      var(--color-primary-300)
+    );
+  }
+
+  .about__content {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .about__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-1);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  /* Rendered Markdown (D-041): prose styles reach the content layer's
+     output via :global selectors. */
+  .about-prose :global(h2) {
+    margin-top: var(--space-8);
+    font-family: var(--font-display);
+    font-size: var(--text-heading-3);
+    font-weight: 600;
+    color: var(--color-neutral-900);
+  }
+
+  .about-prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  .about-prose :global(p) {
+    margin-top: var(--space-4);
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+    max-width: 65ch;
+  }
+
+  .about-prose :global(blockquote) {
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--color-primary-300);
+    background-color: var(--color-primary-50);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--color-neutral-700);
+  }
+</style>

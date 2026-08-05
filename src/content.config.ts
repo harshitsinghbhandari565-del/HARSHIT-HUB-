@@ -12,6 +12,7 @@
  */
 import { glob } from 'astro/loaders';
 import { defineCollection } from 'astro:content';
+import { z } from 'zod';
 
 import { presentationSchema, siteProfileSchema } from './content/schemas';
 
@@ -25,4 +26,16 @@ const site = defineCollection({
   schema: siteProfileSchema,
 });
 
-export const collections = { presentations, site };
+/**
+ * Long-form About content (TAD §5: content/site/about.md). Markdown is
+ * rendered through the content layer; the page styles the result via
+ * :global prose rules (D-041). Content pending (IA-2) — labelled mock.
+ */
+const about = defineCollection({
+  loader: glob({ pattern: 'about.md', base: './src/content/site' }),
+  schema: z.object({
+    title: z.string().optional(),
+  }),
+});
+
+export const collections = { presentations, site, about };
