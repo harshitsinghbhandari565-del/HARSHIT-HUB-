@@ -23,6 +23,26 @@ async function waitFor(condition: () => boolean, what: string, timeoutMs = 2000)
   }
 }
 
+/**
+ * Settle the dialog's deferred Preact work (the mount-effect flush and the
+ * fetch-driven re-render) BEFORE teardown. Preact defers effects via
+ * timers; if a test ends while they are still queued they fire after the
+ * jsdom globals are removed and throw `document is not defined`
+ * (Phase 7 audit — unhandled-error cleanup).
+ */
+async function settleDialog(doc: Document, what: string) {
+  // The mount effect's last act is focusing the input.
+  await waitFor(
+    () => doc.activeElement === doc.querySelector('#search-overlay-input'),
+    `${what}: mount effect flushed`,
+  );
+  // The ready-state prompt proves the fetch-driven re-render completed.
+  await waitFor(
+    () => (doc.body.textContent ?? '').includes('Search across titles'),
+    `${what}: index ready`,
+  );
+}
+
 beforeEach(() => {
   dom = new JSDOM(
     `<!doctype html><html><body><main id="m"></main><button data-search-trigger aria-expanded="false">Search</button><footer id="f"></footer></body></html>`,
@@ -39,7 +59,12 @@ beforeEach(() => {
   );
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // Safety net: let any still-queued Preact timers fire while the jsdom
+  // globals exist, so nothing throws after teardown (Phase 7 audit).
+  for (let i = 0; i < 3; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
   __resetMountForTests(); // module state must not leak between jsdoms
   vi.unstubAllGlobals();
   const g = globalThis as unknown as Record<string, unknown>;
@@ -53,6 +78,7 @@ describe('openSearchDialog (on-demand mount)', () => {
   it('mounts the dialog on first open and tracks aria-expanded', async () => {
     await openSearchDialog(trigger);
     await waitFor(() => dom.window.document.querySelector('[role="dialog"]') !== null, 'dialog mounted');
+    await settleDialog(dom.window.document, 'first open');
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
   });
 
@@ -78,5 +104,6 @@ describe('openSearchDialog (on-demand mount)', () => {
     await waitFor(() => dom.window.document.querySelector('[role="dialog"]') === null, 'closed');
     await openSearchDialog(trigger);
     await waitFor(() => dom.window.document.querySelector('[role="dialog"]') !== null, 'reopened');
+    await settleDialog(dom.window.document, 'reopen');
   });
 });
