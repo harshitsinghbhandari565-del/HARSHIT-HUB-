@@ -4,6 +4,57 @@ Chronological implementation history. Entries are appended, never replaced.
 
 ---
 
+## 2026-08-04 — Phase 5: Global Search Experience (Development Plan Phase F)
+
+### Objectives
+
+Deliver search per Dev Plan Phase F: T-F1 build-time index endpoint, T-F2 scored matcher, T-F3 SearchOverlay island (focus trap, arrow roving, live announcements) — plus the gallery's inline search surface (TAD §11.3: two surfaces, one matcher) and the header trigger wired into the global chrome. Fast, keyboard-accessible, progressively enhanced, within TAD §14.1 budgets, zero new dependencies.
+
+### Work completed
+
+- **Matcher core (T-F2):** normalize (lowercase/diacritics/whitespace) + tokenize; hand-rolled scored matcher with TAD §11.2 semantics (AND across tokens; title 100/60/40, subject 30, tag 25/15; score desc → date desc); `docMatches` shares the semantics with the gallery filter; index builder maps published entries to shortened-key docs.
+- **Index endpoint (T-F1):** `/search-index.json` generated from the PUBLISHED collection at build time — static, cached (netlify.toml already configured), descriptions excluded, zero runtime dependencies.
+- **SearchOverlay (T-F3):** plain header trigger + on-demand dialog (D-038). First click dynamically imports Preact + SearchDialog, so pages nobody searches from pay ~0.3 KB instead of ~10 KB. The dialog implements the full TAD §11.4 contract: dialog semantics + inert background, focus to input, focus trap, Arrow roving over real result links, Escape/close with focus returned to the trigger, polite live counts, Design §18.3 empty state with clear action, graceful fetch-error state. Index fetched once, cached in memory.
+- **Gallery inline search (D-039):** GalleryController owns all gallery state (single-writer URL sync, I6): SearchInput filters the pre-rendered cards via data attributes + the shared matcher, `?q=` replaceState sync (TAD §10.2), URL params applied at hydration, 250ms debounce, empty state with clear-search reset.
+- **ThemeToggle vanilla conversion (D-038):** Phase 2's Preact island became a vanilla bundled script (wiring in `lib/theme.ts` `initThemeToggle`) — removes the Preact runtime from island-free pages. Behaviour unchanged (flip/persist/aria-pressed/panel-hidden).
+- **Budget compliance restored:** with on-demand search + vanilla toggle, eager JS is homepage 6.34 KB ≤20, gallery 6.34 KB ≤25, detail 6.89 KB ≤10 KB (measurement method in TEST_REPORT.md; includes mobile island hydration the detail page stays under budget even counting MobileMenu).
+- **Tests:** 29 new (170 total) — matcher/normalizer, index builder, endpoint, trigger structure, dialog behaviour, mount lifecycle, gallery search, ThemeToggle rewrite.
+
+### Files created
+
+`src/features/search/lib/{normalize,matcher,index-builder}.ts` · `src/pages/search-index.json.ts` · `src/features/search/islands/{SearchOverlay.astro,search-mount.ts,SearchDialog.tsx,SearchDialog.module.css,SearchInput.tsx,SearchInput.module.css}` · `src/features/search/index.ts` · `src/features/theme/islands/ThemeToggle.astro` · `tests/unit/search/{matcher,index-builder,search-index-endpoint,search-overlay,search-mount,gallery-search}.test.tsx`
+
+### Files modified
+
+`src/features/presentations/islands/GalleryController.tsx` (+ module css — inline search) · `src/pages/presentations/index.astro` (data-slug/data-tags) · `src/features/theme/lib/theme.ts` (initThemeToggle) · `src/features/theme/index.ts` · `src/shared/layouts/BaseLayout.astro` (vanilla controls, no hydration directives) · `tests/unit/components/islands.test.tsx` (ThemeToggle rewrite) · permanent docs
+
+### Files deleted
+
+`src/features/theme/islands/ThemeToggle.tsx` + `ThemeToggle.module.css` (replaced by the Astro component, D-038)
+
+### Commits made
+
+`feat(search): matcher/normalizer/index builder (T-F2)` → `feat(search): index endpoint (T-F1)` → `feat(search): overlay on-demand + vanilla ThemeToggle (T-F3, D-038)` → `feat(search): gallery inline search (D-039)` → `test: Phase F suite` → `docs`. See `git log`.
+
+### Decisions
+
+D-037 (SearchInput is a shared sub-component of its owning island — single hydration owner per surface) · D-038 (on-demand search dialog + vanilla ThemeToggle for budget compliance) · D-039 (gallery search lives inside GalleryController — single-writer URL sync).
+
+### Assumptions
+
+- TAD §11.2 scoring constants and AND semantics implemented verbatim (no tuning without evidence).
+- Gallery query param is `q` (TAD §10.2 names it); sort/subject params carried over from Phase D.
+- Search trigger present on all pages (global header per TAD §11.3), including detail pages.
+- Phase 5 ≙ Development Plan Phase F (established numbering convention).
+
+### Outstanding work
+
+- **Phase 6 ≙ Dev Plan Phase G:** About + Contact pages (+ Netlify Forms + honeypot), Coming Soon routes, 404/500.
+- Real content (IA-2) still pending — affects search only by populating the index.
+- Phase H: browser-level a11y (keyboard/SR passes on the overlay), E2E search journeys, CWV field data.
+
+---
+
 ## 2026-08-04 — Phase 4: Homepage / Landing Experience (Development Plan Phase E)
 
 ### Objectives

@@ -312,3 +312,27 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** longer fixed waits (still racy under load — observed); fake timers (brittle against Preact internals).
 - **Consequences:** one extra attribute on the island root; the anti-flake pattern extends to future islands.
 - **Date:** 2026-08-04
+
+### D-037 — SearchInput is a shared sub-component of its owning island
+
+- **Context:** TAD §5 lists SearchInput under features/search/islands, and TAD §7.2 associates it with both the global overlay and the GalleryController. Two independently hydrated inputs coordinating gallery state would violate I6.
+- **Reasoning:** SearchInput is presentational (value in, events out); each surface's owning island (SearchDialog for the overlay, GalleryController for the gallery) renders it and owns the state + URL sync. One hydration owner per surface keeps invariant I6 intact.
+- **Alternatives:** independent island + cross-island events — rejected (I6 violation, coordination complexity); duplicating the input markup per surface — rejected (Design §11.4 is one spec).
+- **Consequences:** SearchInput carries no hydration directive of its own; both surfaces get identical focus/clear/label behaviour by construction.
+- **Date:** 2026-08-04
+
+### D-038 — On-demand search dialog + vanilla ThemeToggle (budget compliance)
+
+- **Context:** Phase 5 puts a search trigger in the global header (TAD §11.3). With preact islands for both header controls, every page eager-loaded the Preact runtime — the detail page measured ~15–17 KB against its 10 KB budget (TAD §14.1), and the overage pattern predated Phase 5 (ThemeToggle island since Phase 2; earlier budgets under-measured transitive island deps).
+- **Reasoning:** search is used on a small fraction of page loads; its JS should load on first use. The trigger is a plain button whose click dynamically imports `search-mount` → Preact + SearchDialog. ThemeToggle is a three-line state flip — preact bought nothing there. Both controls became vanilla bundled scripts; complex islands (MobileMenu, RecentRail, GalleryController, SearchDialog) stay preact where state/focus management is real.
+- **Alternatives:** (a) accept the overage and revise budgets — rejected: the gap was large and avoidable; (b) keep the trigger island, lazy only the dialog — rejected: the trigger island alone forces the preact runtime eagerly.
+- **Consequences:** detail/about/contact eager JS ≈6.9 KB (≤10 KB ✅); homepage/gallery ≈6.3 KB eager (+ island hydration within budget). ThemeToggle wiring lives in lib/theme.ts (`initThemeToggle`) — unit-testable without eval. Focus-return-to-trigger survives the async unmount via the mount module.
+- **Date:** 2026-08-04
+
+### D-039 — Gallery inline search lives inside GalleryController
+
+- **Context:** the gallery gained a search input alongside the subject filter and sort (TAD §11.3 "gallery inline search filters already-rendered DOM; syncs to ?q=").
+- **Reasoning:** one island owns all gallery state (filter + sort + query + URL), so URL sync has a single writer and the three controls compose without coordination (q AND subject AND sort). Cards filter via data attributes through the same matcher the overlay uses — one implementation, two surfaces, per TAD §11.3.
+- **Alternatives:** SearchInput as an independent island beside GalleryController — rejected (cross-island URL writes, I6); a second "gallery search" island — rejected (two writers for one URL).
+- **Consequences:** ?q= uses replaceState (refinement, not navigation — TAD §10.2); empty results get the Design §18.3 state with a clear-search reset inside the island's render.
+- **Date:** 2026-08-04

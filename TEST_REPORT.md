@@ -11,6 +11,65 @@ Methodology notes (apply to all entries):
 
 ---
 
+## Phase 5 — Global Search Experience (Development Plan Phase F)
+
+**Date:** 2026-08-04
+
+**Features tested:**
+- Matcher + normalizer: diacritic stripping, whitespace collapse, case insensitivity, AND-across-tokens semantics, scoring hierarchy (title exact > prefix > substring > subject > tag exact > tag prefix), score-desc → date-desc tie-break, `docMatches` parity with `searchDocs`, empty-query behaviour
+- Index builder + endpoint: shortened-key shape (s/t/u/g/d), published-only filtering, descriptions excluded, content-type header (astro:content mocked per D-028)
+- SearchOverlay trigger: structure + dialog wiring attributes
+- SearchDialog: dialog semantics + inert background, focus-to-input, fetch-once index, results + polite live count, zero-results announcement + clear action (Design §18.3), Escape → onClose, Arrow roving (down from input, down/up through results, up back to input), fetch-error state (cold-cache ordering documented)
+- search-mount lifecycle: on-demand mount, unmount + focus-return-to-trigger, reopen, module-state isolation between jsdoms
+- Gallery inline search: filter + `?q=` replaceState sync, query×subject combination, empty state + clear-search reset, `?q=` applied at hydration
+- ThemeToggle (vanilla rewrite): flip/persist/pressed both directions, pre-set dark reflection
+
+**Automated test count:** 170 total (29 new this phase; 23 files). Breakdown: matcher/normalize 11 · index-builder 2 · endpoint 1 · trigger structure 1 · SearchDialog 6 · search-mount 3 · gallery search 5 · ThemeToggle rewrite 3 · prior phases 141.
+
+**Accessibility results:**
+- Dialog contract per TAD §11.4 verified by tests: `role="dialog"` + `aria-modal`, accessible name, focus to input on open, focus trap while open, focus returned to the trigger on close, `aria-live="polite"` result counts, Escape closes.
+- Results are real links — Enter activates natively; Arrow keys rove focus; the input has a real visually-hidden label (placeholder never the label).
+- Empty state offers a keyboard-reachable clear action; announcements polite (no focus theft).
+- Trigger carries `aria-label`, `aria-expanded`, `aria-controls`.
+- Reduced motion: global block disables transitions; search has no entrance animation.
+- Browser-level keyboard/screen-reader passes on the live overlay: Phase H (tracked).
+
+**Performance results (build artifacts, gzipped):**
+
+Budget method (standardised this phase, TD-13): eager set = real `<script type="module">`/`<link rel=stylesheet>` tags + their static import closure; island hydration chunks counted where they fire on load (client:load islands on their pages; client:media on matching viewports). Dynamic-import edges (SearchDialog, matcher on first open) excluded from eager totals.
+
+| Route | Eager JS | Budget | CSS | Budget |
+|---|---|---|---|---|
+| `/` | 6.34 KB (+RecentRail hydration ≈16 KB total) | ≤20 KB ✅ | 5.12 KB | ≤15 KB ✅ |
+| `/presentations` | 6.34 KB (+GalleryController hydration ≈17 KB) | ≤25 KB ✅ | 5.01 KB | ≤15 KB ✅ |
+| `/presentations/[slug]` | 6.89 KB (+MobileMenu on mobile ≈8 KB) | ≤10 KB ✅ | 3.84 KB | ≤12 KB ✅ |
+
+Search adds ≈0.3 KB per page until first open; the dialog + matcher + input then load once (index fetch included). Zero new dependencies. The Phase 2–4 detail-page overage (transitive preact from header islands, previously under-measured) is resolved by D-038.
+
+**Responsive verification:** dialog panel min(640px,100%) with mobile top-sheet padding (≤767px, 80vh); gallery search input flex row per Design §14.2. Real-viewport E2E: Phase H.
+
+**Browser compatibility:** jsdom + Astro build output; cross-browser matrix Phase H.
+
+**Manual verification:** built dist inspected — `/search-index.json` emitted with correct shape; trigger present in header; dialog markup contracts confirmed in tests against real built components.
+
+**Bugs found (this phase):**
+1. Focus restored before dialog unmount → focus lost to `<body>` (fixed: post-unmount transition effect; surfaced by tests).
+2. Trigger script statically imported the mount module → Preact eager on every page, detail over budget (fixed: dynamic import on click — D-038).
+3. Cross-test module state leak in search-mount (stale host element across jsdoms — fixed: explicit test reset).
+4. Escape dispatch raced fixed-tick waits in one test (fixed: condition-based waitFor).
+5. ESLint: dialog/backdrop handler rules needed justified disables + one misplaced directive (fixed: canonical placements with rationale comments).
+
+**Bugs fixed:** all five above. No product-code behaviour bugs escaped review; the matcher's AND semantics and scoring constants follow TAD §11.2 verbatim.
+
+**Remaining issues:**
+- Browser-level keyboard/SR pass on the overlay (Phase H).
+- Search UX tuning (ranking feel) only with real content feedback (IA-2).
+- TD-13: budget method standardised this phase; earlier-phase numbers were under-measured (corrected by D-038, documented).
+
+**Overall test status:** ✅ PASS — 170/170 automated, zero regressions, all quality gates green, budgets within limits on every route.
+
+---
+
 ## Phase 4 — Homepage / Landing Experience (Development Plan Phase E)
 
 **Date:** 2026-08-04

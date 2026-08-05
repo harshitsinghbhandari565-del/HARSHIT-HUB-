@@ -17,7 +17,7 @@ Every discovered concern is recorded here — never silently ignored.
 | CI-1 | **T-D7 projector dry-run pending** — the M3 manual gate needs Harshit's real Slides/Dropbox URLs (IA-2) and physical panel access; everything automatable around it is test-verified (D-031) | Open — blocked on content + hardware |
 | CI-2 | **Mock seed content live** — three labeled mock presentations (D-029) render until Harshit's real decks replace them | Open — replacement is a content-only change |
 
-_All quality gates green at Phase 4 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 141/141, build clean; homepage budgets JS ≈17.4 KB gz ≤ 20 KB, CSS 5.0 KB ≤ 15 KB — see TEST_REPORT.md)._
+_All quality gates green at Phase 5 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 170/170, build clean; eager budgets homepage 6.34 KB ≤ 20 KB, gallery 6.34 KB ≤ 25 KB, detail 6.89 KB ≤ 10 KB — see TEST_REPORT.md)._
 
 ## Technical Debt
 
@@ -32,6 +32,7 @@ _All quality gates green at Phase 4 completion (typecheck 0/0/0, ESLint 0, Style
 | TD-8 | Placeholder favicon | Initialization | Replace when design provides the brand mark |
 | TD-10 | Skeleton/loading detailed spec lives in Design v1 (not delivered); current Skeleton is a conservative, token-driven placeholder with documented semantics (aria-hidden; consumers announce loading where needed) | Phase 1 (D-018 era) | Replace/extend when Design v1 loading-state spec arrives |
 | TD-12 | Homepage copy constants are labelled MOCK (tagline, about/contact teasers — D-034) and the About teaser visual is a gradient placeholder pending the profile image | Phase 4 | Content-only replacements when Harshit's words/image arrive |
+| TD-13 | Budget measurement method standardised only in Phase 5 (eager tags + static imports; island hydration counted where it fires on load). Earlier phases measured direct tags only and under-reported transitive island deps — Phase 5's D-038 corrected the resulting overage | Phase 5 | Method documented in TEST_REPORT.md; keep it for all future phases |
 | TD-11 | Tablet "More" `<details>` dropdown does not auto-close on outside click or Escape (native disclosure behavior; D-020) | Phase 2 | If review deems it needed, add a small shared script or promote to an island before Phase F |
 
 ## Future Improvements
