@@ -1,0 +1,153 @@
+---
+/**
+ * Hero — homepage landing section (Dev Plan T-E1, Design §11.7).
+ *
+ * The hero NAME is the LCP element and is exempted from opacity
+ * animation (ADR-0008): it paints at full opacity on frame one and may
+ * only rise via transform — opacity keyframes would push LCP ~700ms.
+ *
+ * Entrance choreography (Design §23.4) applies only with JS
+ * (html.js gate, D-024) and honours prefers-reduced-motion globally.
+ * Two modes set by the homepage entrance script:
+ *   full    — first visit or >30s away: staggered fade/rise
+ *   reduced — return within 30s: simple 300ms fade, name untouched
+ */
+import Button from '../ui/Button.astro';
+import { SITE_NAME, SITE_TAGLINE } from '../config/site';
+---
+
+<section class="hero">
+  <div class="container hero__inner">
+    <p class="hero__overline">Academic Portfolio</p>
+    <h1 class="hero__name">
+      {SITE_NAME}<span class="hero__name-dot" aria-hidden="true">.</span>
+    </h1>
+    <p class="hero__tagline">{SITE_TAGLINE}</p>
+    <div class="hero__ctas">
+      <!-- Secondary style at primary height: hierarchy via size/placement,
+           reserving Electric Blue for the Present action (Design U2 fix). -->
+      <Button label="View Presentations" variant="secondary" href="/presentations" />
+      <Button label="About Me" variant="ghost" href="/about" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: var(--space-16) var(--space-12);
+  }
+
+  .hero__inner {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .hero__overline {
+    font-family: var(--font-display);
+    font-size: var(--text-overline);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary-500);
+  }
+
+  .hero__name {
+    font-family: var(--font-display);
+    font-size: var(--text-display-lg);
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--color-primary-900);
+  }
+
+  @media (width >= 768px) {
+    .hero__name {
+      font-size: var(--text-display-xl);
+    }
+  }
+
+  .hero__name-dot {
+    color: var(--color-accent-500); /* brand signature (Design §11.7) */
+  }
+
+  .hero__tagline {
+    max-width: 500px;
+    font-size: var(--text-body-lg);
+    color: var(--color-neutral-600);
+  }
+
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  /* Make the hero CTA match primary height for visual hierarchy (U2). */
+  .hero__ctas :global(.btn--secondary) {
+    min-height: 52px;
+  }
+
+  /* ── Entrance choreography (Design §23.4, ADR-0008) ──
+   * Gated on html.js + data-entrance so no-JS visitors see full static
+   * content instantly (I1). Durations via tokens; stagger delays follow
+   * the design spec. The NAME never animates opacity — transform only. */
+  @keyframes hero-fade-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes hero-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hero-rise {
+    from {
+      transform: translateY(8px);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* First visit / >30s: staggered entrance. */
+  :global(html.js[data-entrance='full']) .hero__overline {
+    opacity: 0;
+    animation: hero-fade-rise calc(var(--duration-normal) * 2) var(--ease-out) 100ms forwards;
+  }
+
+  :global(html.js[data-entrance='full']) .hero__name {
+    /* ADR-0008: paints immediately; transform-only rise keeps LCP clean. */
+    animation: hero-rise var(--duration-deliberate) var(--ease-out) both;
+  }
+
+  :global(html.js[data-entrance='full']) .hero__tagline {
+    opacity: 0;
+    animation: hero-fade-rise calc(var(--duration-normal) * 2) var(--ease-out) 350ms forwards;
+  }
+
+  :global(html.js[data-entrance='full']) .hero__ctas {
+    opacity: 0;
+    animation: hero-fade-rise var(--duration-slow) var(--ease-out) 450ms forwards;
+  }
+
+  /* Return visit within 30s: simple fade, name untouched (ADR-0008). */
+  :global(html.js[data-entrance='reduced']) .hero__overline,
+  :global(html.js[data-entrance='reduced']) .hero__tagline,
+  :global(html.js[data-entrance='reduced']) .hero__ctas {
+    opacity: 0;
+    animation: hero-fade var(--duration-slow) var(--ease-out) forwards;
+  }
+</style>
