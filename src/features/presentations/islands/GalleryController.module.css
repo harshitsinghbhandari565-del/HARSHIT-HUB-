@@ -88,3 +88,52 @@
   color: var(--color-neutral-600);
   font-size: var(--text-body-sm);
 }
+
+/* ── Inline search (Phase F, Design §14.2: search + sort row) ── */
+
+.searchRow {
+  display: flex;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.noResults {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.noResultsHeading {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-4);
+  font-weight: 600;
+  color: var(--color-neutral-600); /* Design §18.3 (v2 correction) */
+}
+
+.noResultsBody {
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+}
+
+.noResultsAction {
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-primary-500);
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.noResultsAction:hover {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.noResults[hidden] {
+  display: none;
+}

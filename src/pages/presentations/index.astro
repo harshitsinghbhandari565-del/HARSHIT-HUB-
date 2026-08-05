@@ -49,7 +49,13 @@ const count = presentations.length;
         <ul class="gallery__grid" data-gallery>
           {
             presentations.map((p) => (
-              <li data-subject={p.subject} data-date={p.date.toISOString()} data-title={p.title}>
+              <li
+                data-slug={p.slug}
+                data-subject={p.subject}
+                data-date={p.date.toISOString()}
+                data-title={p.title}
+                data-tags={p.tags.join('|')}
+              >
                 <PresentationCard
                   slug={p.slug}
                   title={p.title}
