@@ -1,24 +1,231 @@
 ---
 /**
- * TEMPORARY route shell (Repository Initialization only).
+ * Homepage (Dev Plan Phase E) — assembles the systems built in prior
+ * phases: Hero (T-E1), RecentRail island over the gallery engine
+ * (T-E2, Design §13.2 dual strategy), and the About/Contact teasers
+ * (T-E3). This page replaces the initialization shell (TD-1 resolved).
  *
- * Establishes the routing foundation and gives the build/deploy pipeline a
- * verifiable page. The designed homepage (hero + recent/latest rail +
- * teasers) replaces this wholesale in Phase E — no markup here survives.
+ * Entrance choreography (Design §23.4 + ADR-0008): an inline script in
+ * <head> decides full vs reduced entrance from a sessionStorage
+ * timestamp, before any animation runs. The hero name (LCP) never
+ * animates opacity. With JavaScript disabled the page is fully static.
  */
+import { getCollection } from 'astro:content';
+
+import RecentRail from '../features/presentations/islands/RecentRail';
+import PresentationCard from '../features/presentations/components/PresentationCard.astro';
+import { normalizeSlidesUrl } from '../features/presentations/lib/slidesUrl';
+import { sortPresentations } from '../features/presentations/lib/sorting';
+import AboutTeaser from '../shared/components/AboutTeaser.astro';
+import ContactTeaser from '../shared/components/ContactTeaser.astro';
+import Hero from '../shared/components/Hero.astro';
 import BaseLayout from '../shared/layouts/BaseLayout.astro';
-import { SITE_DEFAULT_DESCRIPTION } from '../shared/config/site';
+
+const published = await getCollection('presentations', ({ data }) => data.published);
+
+// Rail fallback order: most recently added first (Design §13.2).
+const rail = sortPresentations(
+  published.map((entry) => ({
+    slug: entry.id,
+    title: entry.data.title,
+    subject: entry.data.subject,
+    date: entry.data.date,
+    tags: entry.data.tags,
+    dateMs: entry.data.date.getTime(),
+    slidesUrl: normalizeSlidesUrl(entry.data.googleSlidesUrl),
+  })),
+  'date-desc',
+).slice(0, 3);
 ---
 
 <BaseLayout
   title="Home"
-  description={SITE_DEFAULT_DESCRIPTION}
+  description="Harshit's academic portfolio and presentation hub — every talk one click from full-screen."
   activePath="/"
 >
+  <Fragment slot="head">
+    <script is:inline>
+      // Entrance mode (Design §23.4): first visit / >30s away = "full"
+      // stagger; a quick return = "reduced" simple fade. Runs before
+      // first paint; failures leave the page fully static.
+      try {
+        const last = Number(sessionStorage.getItem('lastHomeVisit') || 0);
+        document.documentElement.dataset.entrance =
+          Date.now() - last < 30000 ? 'reduced' : 'full';
+        sessionStorage.setItem('lastHomeVisit', String(Date.now()));
+      } catch {
+        // Storage unavailable — page stays fully static, no entrance.
+      }
+    </script>
+  </Fragment>
+
   <main id="main-content">
-    <div class="container stack">
-      <h1>Harshit.</h1>
-      <p>Foundation initialized — the homepage arrives in Phase E.</p>
-    </div>
+    <Hero />
+
+    <RecentRail client:load>
+      <section class="home-rail container" aria-labelledby="rail-heading">
+        <div class="home-rail__header">
+          <h2 id="rail-heading" class="home-rail__heading" data-rail-heading>
+            Latest Presentations
+          </h2>
+          <a class="home-rail__view-all" href="/presentations">View All</a>
+        </div>
+        <ul class="home-rail__grid" data-rail>
+          {
+            rail.map((p) => (
+              <li data-slug={p.slug}>
+                <PresentationCard
+                  slug={p.slug}
+                  title={p.title}
+                  subject={p.subject}
+                  date={p.date}
+                  tags={p.tags}
+                  showQuickLaunch
+                  slidesUrl={p.slidesUrl}
+                />
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </RecentRail>
+
+    <AboutTeaser />
+    <ContactTeaser />
   </main>
 </BaseLayout>
+
+<style>
+  /* ── Recent/Latest rail (Design §13, §29.4) ── */
+  .home-rail {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-4);
+  }
+
+  .home-rail__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .home-rail__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-3);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .home-rail__view-all {
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-primary-500);
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .home-rail__view-all:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
+  }
+
+  /* Mobile: horizontal scroll + snap (Design §29.4). */
+  .home-rail__grid {
+    display: flex;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .home-rail__grid > li {
+    flex: 0 0 min(320px, 85vw);
+    scroll-snap-align: start;
+  }
+
+  /* Tablet: 2 columns; desktop/panel: 3 columns (Design §24.2/§24.4). */
+  @media (width >= 768px) {
+    .home-rail__grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      overflow-x: visible;
+      scroll-snap-type: none;
+    }
+
+    .home-rail__grid > li {
+      flex: none;
+    }
+  }
+
+  @media (width >= 1024px) {
+    .home-rail__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (width >= 1920px) {
+    .home-rail__grid {
+      grid-template-columns: repeat(3, minmax(var(--card-min-width-panel), 1fr));
+    }
+  }
+
+  /* ── Rail entrance (Design §23.4: heading 550ms, cards from 600ms,
+       80ms stagger). When the island reorders for personal recency it
+       marks the wrapper, and the stagger is dropped so reordered cards
+       don't re-animate (D-030 companion guard). ── */
+  @keyframes rail-fade-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  :global(html.js[data-entrance='full']) .home-rail__heading {
+    opacity: 0;
+    animation: rail-fade-rise var(--duration-slow) var(--ease-out) 550ms forwards;
+  }
+
+  :global(html.js[data-entrance='full']) .home-rail__grid > li {
+    opacity: 0;
+    animation: rail-fade-rise var(--duration-slow) var(--ease-out) forwards;
+  }
+
+  :global(html.js[data-entrance='full']) .home-rail__grid > li:nth-child(1) {
+    animation-delay: 600ms;
+  }
+  :global(html.js[data-entrance='full']) .home-rail__grid > li:nth-child(2) {
+    animation-delay: 680ms;
+  }
+  :global(html.js[data-entrance='full']) .home-rail__grid > li:nth-child(3) {
+    animation-delay: 760ms;
+  }
+
+  :global(html.js[data-entrance='reduced']) .home-rail {
+    animation: rail-fade var(--duration-slow) var(--ease-out);
+  }
+
+  /* Island reordered for personal recency — skip the stagger. */
+  :global([data-recent-rail][data-is-recent]) .home-rail__grid > li,
+  :global([data-recent-rail][data-is-recent]) .home-rail__heading {
+    animation: none;
+    opacity: 1;
+  }
+
+  @keyframes rail-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,44 @@
+---
+/**
+ * ContactTeaser — homepage Contact section teaser (Dev Plan T-E3,
+ * Design §29.2 ContactTeaserSection): short invitation + "Get in Touch"
+ * secondary button to /contact. Copy is a labelled site-config default
+ * (D-034) until Harshit's real words arrive.
+ */
+import Button from '../ui/Button.astro';
+import { SITE_CONTACT_TEASER } from '../config/site';
+---
+
+<section class="contact-teaser" aria-labelledby="contact-teaser-heading">
+  <div class="container contact-teaser__inner">
+    <h2 id="contact-teaser-heading" class="contact-teaser__heading">Get in Touch</h2>
+    <p class="contact-teaser__text">{SITE_CONTACT_TEASER}</p>
+    <Button label="Get in Touch" variant="secondary" href="/contact" />
+  </div>
+</section>
+
+<style>
+  .contact-teaser {
+    padding-block: var(--space-16);
+  }
+
+  .contact-teaser__inner {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .contact-teaser__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-2);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .contact-teaser__text {
+    max-width: 52ch;
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+  }
+</style>
