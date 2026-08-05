@@ -1,10 +1,10 @@
 # Release Checklist
 
-Tracks everything required before the project can be merged to `main` and deployed. Updated continuously through the remaining phases.
+Tracks everything required before the project can be merged to `main` and deployed. Updated continuously; fully reviewed in Phase 7 (Hardening).
 
 **Legend:** ⬜ Not started · 🟡 In progress · ✅ Done · ⛔ Blocked / N/A
 
-**Branch:** `arena/019fcc8f-harshit-hub` · **Protected:** `main` · **Last updated:** 2026-08-05
+**Branch:** `arena/019fcc8f-harshit-hub` · **Protected:** `main` · **Last updated:** 2026-08-05 (Phase 7)
 
 ---
 
@@ -20,41 +20,49 @@ Tracks everything required before the project can be merged to `main` and deploy
 | Contact page + Netlify form + honeypot | ✅ | Phase 6 | 2026-08-05 |
 | Coming Soon placeholders (noindex) | ✅ | Phase 6 | 2026-08-05 |
 | 404 / 500 recovery pages | ✅ | Phase 6 | 2026-08-05 |
+| Chrome survives client-side navigation | ✅ | Phase 7 audit fix — delegation + swap re-sync + entrance rerun (D-044); regression-tested | 2026-08-05 |
+| Route-change focus + title announcement | ✅ | TAD §15.4 implemented + tested (D-044) | 2026-08-05 |
 | Projector dry-run (T-D7, M3) | ⬜ | Needs real Slides/Dropbox URLs + physical panel | — |
 
 ## Accessibility
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| axe-core zero violations (component level) | ✅ | 190/190 tests incl. axe | 2026-08-05 |
+| axe-core zero violations (component level) | ✅ | Component + island suites | 2026-08-05 |
+| **axe zero violations site-wide (built pages, both themes)** | ✅ | `tests/a11y/` — 24 scans in CI (T-H1) | 2026-08-05 |
 | Semantic HTML + landmarks | ✅ | All pages | 2026-08-05 |
-| Keyboard: focus trap, roving, Escape | ✅ | Overlay, mobile menu | 2026-08-05 |
+| Keyboard: focus trap, roving, Escape | ✅ | Overlay, mobile menu (vanilla rewrite re-verified) | 2026-08-05 |
+| Heading hierarchy (WCAG 1.3.1) | ✅ | Gallery heading-order fixed (D-046); all pages scanned | 2026-08-05 |
 | Contact form labels + focus-to-invalid | ✅ | Phase 6 | 2026-08-05 |
-| WCAG 2.2 AA full audit (both themes) | ⬜ | Phase H gate | — |
-| Manual keyboard-only pass (all pages) | ⬜ | Phase H gate | — |
-| Screen-reader pass (critical path) | ⬜ | Phase H gate | — |
+| Reduced-motion support | ✅ | Global overrides + targeted feedback retention (TAD §15.6); verified structurally | 2026-08-05 |
+| WCAG 2.2 AA audit — real-browser contrast (both themes) | ⬜ | jsdom cannot compute contrast (documented); verify token pairs on first deploy preview against Design §25.1 | — |
+| Manual keyboard-only pass (all pages, both themes) | ⬜ | Requires human; follow RUNBOOK §2 flows | — |
+| Screen-reader pass (VoiceOver/NVDA, critical path) | ⬜ | No headless SR exists; critical path = home → gallery → detail → Present; contact form | — |
 
 ## Performance
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| Eager JS within TAD §14.1 budgets (all routes) | ✅ | 6.34–6.89 KB eager | 2026-08-05 |
-| CSS within budgets (all routes) | ✅ | ≤4.71 KB | 2026-08-05 |
+| Eager JS within TAD §14.1 budgets (all routes) | ✅ | 7.24–16.75 KB; **enforced by build gate** (`scripts/budgets.mjs`) | 2026-08-05 |
+| CSS within budgets (all routes) | ✅ | ≤7.70 KB; same gate | 2026-08-05 |
+| Total weight within budgets (all routes) | ✅ | ≤32.6 KB vs 35–50 limits; same gate | 2026-08-05 |
 | Self-hosted fonts, latin subset, metric fallbacks | ✅ | Phase 5 | 2026-08-05 |
-| On-demand search dialog (D-038) | ✅ | Phase 5 | 2026-08-05 |
-| Lighthouse CI per-route budgets | ⬜ | Phase H gate | — |
-| Core Web Vitals field verification | ⬜ | Phase H / Phase 2 roadmap | — |
+| On-demand search dialog (D-038) + vanilla chrome (D-044) | ✅ | Re-verified by gate after rewrite | 2026-08-05 |
+| Lighthouse lab audit on a deploy preview | ⬜ | Needs a live Netlify preview (FI-3); build-time budgets already enforced | — |
+| Core Web Vitals field verification | ⬜ | Phase 2 roadmap (RUM) | — |
 
 ## Security
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| No secrets in client (I3) | ✅ | Verified | 2026-08-05 |
-| XSS: Astro auto-escape, no set:html | ✅ | No set:html in use | 2026-08-05 |
-| External links rel="noopener noreferrer" | ✅ | lint-enforced | 2026-08-05 |
+| No secrets in client (I3) | ✅ | Re-verified Phase 7 | 2026-08-05 |
+| XSS: Astro auto-escape, no set:html | ✅ | Re-verified; no set:html in codebase | 2026-08-05 |
+| External links rel="noopener noreferrer" | ✅ | lint-enforced + link-check verifies built output | 2026-08-05 |
 | Honeypot on contact form | ✅ | TAD §15.6 | 2026-08-05 |
-| Security headers (netlify.toml) | 🟡 | HSTS/nosniff/referrer set; CSP deferred to Phase H | 2026-08-05 |
-| CSP report-only → enforce | ⬜ | Phase H gate | — |
+| Security headers (netlify.toml) | ✅ | HSTS/nosniff/referrer/permissions + CSP | 2026-08-05 |
+| **CSP enforced (hash-allowlisted, no unsafe-inline)** | ✅ | T-H2 / D-042; generator + CI drift check | 2026-08-05 |
+| CSP report-only verification on first deploy preview | ⬜ | TAD deployment discipline — RUNBOOK §5 procedure | — |
+| Supply-chain audit gate + Dependabot | ✅ | TAD §19.6 (D-045); 4 advisories allowlisted with rationale | 2026-08-05 |
 
 ## Responsive Verification
 
@@ -62,19 +70,26 @@ Tracks everything required before the project can be merged to `main` and deploy
 |---|---|---|---|
 | Breakpoint implementation (mobile/tablet/desktop/panel) | ✅ | Design §24 | 2026-08-05 |
 | Rail horizontal scroll + snap (mobile) | ✅ | Phase 4 | 2026-08-04 |
-| Real-viewport matrix (Playwright) | ⬜ | Phase H | — |
-| Panel-breakpoint theme lock verification | ⬜ | Needs panel hardware | — |
+| Mobile menu <768px / inline nav ≥768px | ✅ | vanilla rewrite re-verified (CSS unchanged) | 2026-08-05 |
+| Real-viewport matrix (browser) | ⬜ | Playwright deferred (FI-2); manual pass on deploy preview | — |
+| Panel-breakpoint theme lock verification | ⬜ | Needs ≥1920px coarse-pointer hardware (ADR-0011) | — |
 
 ## Content Replacement
 
-| Item | Status | Notes | Date |
-|---|---|---|---|
-| Real presentation decks (≥3, Slides + Dropbox) | ⬜ | IA-2 — Harshit | — |
-| Real homepage tagline + teasers (D-034) | ⬜ | IA-2 | — |
-| Real About biography | ⬜ | IA-2 | — |
-| Real contact email + socials (OQ-4) | ⬜ | IA-2 | — |
-| Profile image (replaces gradient placeholder) | ⬜ | IA-2 / TD-12 | — |
-| Remove MOCK labels after replacement | ⬜ | After content lands | — |
+Every remaining placeholder in the codebase (Phase 7 content audit — recorded, NOT replaced):
+
+| Placeholder | Location | Replacement |
+|---|---|---|
+| ⬜ 3 mock presentations (titles, Slides/Dropbox URLs, descriptions) | `src/content/presentations/*.json` | Harshit's real decks (IA-2) — see docs/ADDING-A-PRESENTATION.md |
+| ⬜ Mock tagline | `SITE_TAGLINE` in `src/shared/config/site.ts` | Real tagline (IA-2) |
+| ⬜ Mock About teaser | `SITE_ABOUT_TEASER` in `src/shared/config/site.ts` | Real copy (IA-2) |
+| ⬜ Mock Contact teaser | `SITE_CONTACT_TEASER` in `src/shared/config/site.ts` | Real copy (IA-2) |
+| ⬜ Mock contact email (`hello@harshit.example`) | `SITE_EMAIL` in `src/shared/config/site.ts` | Real email (IA-2 / OQ-4); socials added when provided |
+| ⬜ Mock About biography | `src/content/site/about.md` | Real bio (IA-2) |
+| ⬜ Placeholder favicon | `public/favicon.svg` | Brand mark when design provides (TD-8) |
+| ⬜ Gradient placeholder instead of profile image | About page + AboutTeaser (TD-12) | Real image (IA-2) |
+| ⬜ Site profile data file (`profile.json`) | `src/content/site/` — collection wired, file pending | Real profile content (IA-2); site.ts constants retire then |
+| ⬜ Canonical domain | `site` in astro.config.mjs + robots.txt Sitemap line | Custom domain step (RUNBOOK §10) |
 
 ## Manual Testing
 
@@ -82,22 +97,26 @@ Tracks everything required before the project can be merged to `main` and deploy
 |---|---|---|---|
 | Present flow on physical projector (T-D7) | ⬜ | Blocked on content + panel | — |
 | Contact form live submission (Netlify) | ⬜ | Requires deployed Netlify site | — |
-| No-JS verification (all pages) | ⬜ | Phase H | — |
+| No-JS verification (all pages) | ⬜ | Disable JS in browser; static nav + forms must work (I1) | — |
+| Client-side navigation smoke (chrome keeps working) | 🟡 | Automated regression tests PASS; confirm visually on deploy preview | — |
 
 ## Deployment
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| Netlify site + custom domain | ⬜ | Subdomain default (B7) | — |
-| CI workflow live (GitHub Actions) | ⛔ | Blocked on `workflows` permission | — |
-| Netlify Forms enabled | ⬜ | On first deploy | — |
-| Rollback rehearsed | ⬜ | Phase H gate | — |
-| Environment-aware robots.txt | ⬜ | Phase H | — |
+| Netlify site + custom domain | ⬜ | Subdomain default (B7); RUNBOOK §10 | — |
+| CI workflow live (GitHub Actions) | ⛔ | Commits held locally — GitHub App lacks `workflows` permission (since Phase 3) | — |
+| Netlify Forms enabled | ⬜ | Verify on first deploy | — |
+| Rollback rehearsed | ⬜ | RUNBOOK §3 rehearsal script | — |
+| Environment-aware robots.txt | ✅ | TD-4 resolved — preview Disallow + production smoke tests | 2026-08-05 |
+| Operations docs complete (T-H4) | ✅ | `docs/ADDING-A-PRESENTATION.md` + `docs/RUNBOOK.md` | 2026-08-05 |
+| ADRs discoverable next to code (FI-1) | ✅ | `docs/adr/ADR-0001…0012` | 2026-08-05 |
 
 ## Final Approval
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| All Phase H gates passed | ⬜ | — | — |
-| Owner content sign-off | ⬜ | Harshit | — |
+| All Phase H automatable gates passed | ✅ | TEST_REPORT Phase 7 entry | 2026-08-05 |
+| Deploy-dependent gates (above ⬜ items) | ⬜ | First deploy preview + hardware | — |
+| Owner content sign-off | ⬜ | Harshit (IA-2) | — |
 | Merge to `main` (owner-authorized only) | ⬜ | Owner action | — |

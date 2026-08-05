@@ -5,9 +5,74 @@ Permanent testing history of the project. Entries are appended per phase, never 
 Methodology notes (apply to all entries):
 
 - Automated suites run in Vitest; `.astro` components render through the Astro Container API; Preact islands render into jsdom and are exercised with real DOM events.
-- Accessibility automation is axe-core (component level). Browser-level axe, keyboard, and screen-reader passes arrive with Phase H's E2E tooling (Playwright + `@axe-core/playwright`).
-- Performance evidence until Phase H is build-artifact measurement (gzipped route assets) against TAD §14.1 budgets; field RUM arrives in Phase 2 of the roadmap.
-- Responsive behaviour is implemented per Design §24/§29.4 breakpoint specs and verified structurally; real-viewport verification is a Phase H E2E activity.
+- Accessibility automation is axe-core at two layers: component level (Container API) and, since Phase H, **site-wide over the built output** (`tests/a11y/`, every page × both themes). Colour contrast returns "incomplete" under jsdom (no visual rendering) and is covered by the Design §25.1 token table plus a real-browser manual pass (RELEASE_CHECKLIST). Screen-reader passes remain manual (no headless SR exists).
+- Performance evidence is build-artifact measurement (gzipped route assets) against TAD §14.1 budgets — **automated as a build gate since Phase H** (`scripts/budgets.mjs`, TD-13 method); lab Lighthouse and field RUM require deploy previews / real traffic (post-launch).
+- Responsive behaviour is implemented per Design §24/§29.4 breakpoint specs and verified structurally; real-viewport verification is a post-launch activity (Playwright deferred — FI-2).
+
+---
+
+## Phase 7 — Hardening & Release Candidate (Development Plan Phase H)
+
+**Date:** 2026-08-05
+
+**Scope:** quality, not features. Whole-project audit + Phase H gates (T-H1 a11y, T-H2 security/CSP, T-H3 budgets, T-H4 ops docs), plus the fix wave the audit triggered.
+
+**Bugs found by the audit (all fixed):**
+1. Vitest reported 2 unhandled errors in search-mount (deferred Preact effect + re-render firing after jsdom teardown) — exit code 1, masks real failures. Tests now settle observable markers before finishing + afterEach timer flush.
+2. **ClientRouter swaps broke the chrome** — Astro's router replaces the whole `<body>` and skips scripts whose content already ran; element-bound listeners (theme toggle, search trigger, header scroll) died after the first navigation, and swapped-in toggles showed stale theme state. Fixed via document-level delegation + `astro:after-swap` re-sync (D-044). Covered by the new navigation-resilience suites.
+3. **TAD §15.4 focus management absent** — route changes never moved focus or announced the page. Added `astro:page-load` handler (focus → new h1/main, title announced via polite live region; initial load untouched). 4 dedicated tests.
+4. **Detail route over its 10 KB budget at mobile widths** (15.0 KB): MobileMenu `client:media` hydration carried Preact onto every island-free route. Rewritten vanilla (identical markup/styles/Gate-2 contract) → 7.8 KB; island-free pages 14.5 → 7.2 KB. MobileMenu suite rewritten (now synchronous — no timer races).
+5. **Gallery heading-order (WCAG 1.3.1)** — h1 → h3 skip found by the new site-wide axe scans; fixed via PresentationCard `headingLevel` (D-046).
+6. Entrance script never re-ran on SPA returns home → `data-astro-rerun` (Design §23.4 time logic restored); asserted in entrance.test.ts.
+
+**New automated coverage (43 new tests → 233 total, 29 files):**
+- `tests/a11y/site-wide.test.ts` — every built page × light/dark under axe (wcag2a/2aa/22aa + best-practice): **24 scans, zero violations**. Skips cleanly when dist/ absent; CI runs it post-build.
+- Navigation resilience: ThemeToggle swap re-sync + delegated click; MobileMenu open/close after a simulated swap.
+- `search-trigger.test.ts` — delegation, post-swap behaviour, non-trigger clicks (search-mount mocked at the module boundary).
+- `nav-a11y.test.ts` — initial-load no-steal, focus + announce on navigation, main fallback, announcer recreation across swaps.
+- `robots.test.ts` — production/preserve/preview-rewrite/self-heal/fail-closed over the real script.
+
+**Quality gates (all green):**
+
+| Gate | Result |
+|---|---|
+| Typecheck (astro check) | 0 errors / 0 warnings / 0 hints |
+| ESLint | 0 (incl. new Node-globals block for scripts/) |
+| Stylelint | 0 |
+| Vitest | **233/233**, 0 unhandled errors |
+| Build | clean — 12 pages + /search-index.json |
+| CSP sync (`generate-csp.mjs --check`) | in sync (8 script / 15 style hashes) |
+| Performance budgets (`budgets.mjs`) | all routes within TAD §14.1 |
+| Internal link health (`link-check.mjs`) | all resolve; noopener verified; sitemap ↔ pages exact |
+| Supply-chain audit (`audit.mjs`) | green with 4 documented allowlisted advisories |
+| robots policy | production valid; previews → Disallow (TD-4) |
+
+**Performance results (build artifacts, gzipped, TD-13 method):**
+
+| Route | Eager JS | Budget | CSS | Budget |
+|---|---|---|---|---|
+| / | 14.83 KB | ≤20 ✅ | 7.70 KB | ≤15 ✅ |
+| /presentations | 16.75 KB | ≤25 ✅ | 7.24 KB | ≤15 ✅ |
+| /presentations/[slug] | 7.78 KB | ≤10 ✅ | 6.51 KB | ≤12 ✅ |
+| /about, /contact, placeholders, errors | 7.24 KB | ≤15 ✅ | 5.52–6.09 KB | ≤12 ✅ |
+
+/contact `client:visible` hydration (+8.23 KB) fires on scroll and is reported separately — TD-14 resolved under the TD-13 method (D-043).
+
+**Accessibility results:**
+- 24/24 site-wide axe scans clean (both themes, full WCAG 2.0–2.2 AA + best-practice rulesets).
+- Route-change focus + title announcement implemented and tested (TAD §15.4).
+- Colour contrast: incomplete under jsdom by design — real-browser verification on the first deploy preview (RELEASE_CHECKLIST); token pairs follow Design §25.1.
+- Manual keyboard-only + screen-reader passes: RELEASE_CHECKLIST (requires human + hardware).
+
+**Security results (T-H2):**
+- Strict CSP enforced via netlify.toml: hash-allowlisted inline scripts/styles, no unsafe-inline, `frame-ancestors 'none'`, TAD §19.3 directive set (D-042). Generator verifies preconditions (no inline handlers / cross-origin resources / frames).
+- Headers: HSTS, nosniff, Referrer-Policy, Permissions-Policy (Phase 1) + CSP (this phase).
+- Supply chain: audit gate + Dependabot + lockfile CI installs (TAD §19.6). Known benign: ClientRouter `data:` probe blocked by design (CI-4).
+- No secrets (I3), no set:html, noopener lint-enforced, honeypot per TAD §15.6 — all re-verified.
+
+**Remaining manual / deploy-dependent items:** RELEASE_CHECKLIST (CSP report-only verification on first preview, rollback rehearsal, live form submission, Lighthouse/CWV, real-viewport matrix, panel theme-lock, VoiceOver, contrast spot-check, T-D7 projector dry-run).
+
+**Overall test status:** ✅ PASS — 233/233 automated, zero unhandled errors, every quality gate green, all TAD §14.1 budgets met, zero axe violations across the built site in both themes.
 
 ---
 

@@ -4,6 +4,62 @@ Chronological implementation history. Entries are appended, never replaced.
 
 ---
 
+## 2026-08-05 — Phase 7: Hardening & Release Candidate (Development Plan Phase H)
+
+### Objectives
+
+Final engineering phase — no new product features. Complete Dev Plan Phase H (T-H1 accessibility audits, T-H2 security headers & CSP, T-H3 budget audit & performance, T-H4 final artifact delivery), plus a whole-project engineering audit: dead/duplicated code, navigation correctness, performance, accessibility, security, content placeholders, and documentation.
+
+### Work completed
+
+- **Engineering audit findings (all fixed unless noted):**
+  1. Vitest reported 2 unhandled errors in the search-mount suite (deferred Preact work firing after jsdom teardown) — this fails the run (exit 1) and could mask real failures. Fixed by settling observable markers before teardown + an afterEach timer flush.
+  2. **ClientRouter navigation broke the chrome** (found by code audit of Astro's router: it swaps the whole `<body>` and does NOT re-run scripts whose content already ran, so element-bound listeners die after the first navigation): ThemeToggle, search trigger, and header scroll-shadow all stopped working after the first SPA navigation; swapped-in toggles showed stale theme state. Fixed with document-level delegation + `astro:after-swap` re-sync (D-044).
+  3. **TAD §15.4 focus management was unimplemented** — client-side navigation never moved focus or announced the page. Added the `astro:page-load` handler: focus to the new h1/main + polite live-region title announcement (initial load untouched).
+  4. **/presentations/[slug] was over its 10 KB TAD §14.1 JS budget at mobile widths** (15.0 KB): the MobileMenu Preact island (`client:media`) dragged ~8 KB of Preact onto every island-free route. Rewrote MobileMenu as a vanilla bundled script — identical markup, styles, and Gate-2 a11y contract; detail route now 7.8 KB, island-free pages 14.5 → 7.2 KB (D-044).
+  5. **Gallery heading-order axe violation** (h1 → h3 skip): PresentationCard gained a `headingLevel` prop (gallery uses h2; homepage rail keeps h3).
+  6. Entrance script now carries `data-astro-rerun` so the full/reduced mode is re-decided on SPA returns home (Design §23.4 time logic).
+- **Security (T-H2):** strict CSP enforced via `netlify.toml` — build-time generator hashes every inline script/style across all pages (`scripts/generate-csp.mjs`), no `unsafe-inline`, exact TAD §19.3 directive set incl. `frame-ancestors 'none'`; preconditions verified (no inline handlers, no cross-origin resources); netlify.toml treated as a lockfile with a CI drift check (D-042).
+- **Performance (T-H3):** build-time budget gate (`scripts/budgets.mjs`) — TD-13 method, all TAD §14.1 limits, fails the build on overage; client:visible hydration reported separately (TD-14 resolved: /contact eager 7.24 KB ≤ 15).
+- **Supply chain (TAD §19.6):** `scripts/audit.mjs` — npm audit at high/critical fails CI; 4 advisories allowlisted with exploitability rationales; stale entries fail the gate. Dependabot configured (weekly, grouped minor/patch).
+- **Accessibility (T-H1):** site-wide axe suite over the BUILT site — every page × both themes (24 scans) in CI; contrast remains manual (jsdom limitation, documented).
+- **Ops (T-H4 + TD-4 + FI-1 + FI-4):** `docs/ADDING-A-PRESENTATION.md`, `docs/RUNBOOK.md`; environment-aware robots.txt (previews → `Disallow: /`, production validated + smoke-tested, Sitemap directive added); internal link health script + weekly workflow; ADR-0001…0012 migrated verbatim from TAD §23 into `docs/adr/`.
+- **Tests:** 190 → 233 (29 files): MobileMenu vanilla suite, navigation-resilience suites, search-trigger delegation, nav focus/announce handler, robots smoke tests, entrance rerun assertion, 24 site-wide axe scans.
+
+### Files created
+
+`scripts/{generate-csp,budgets,audit,link-check,robots}.mjs` · `src/shared/lib/{mobileMenu,navA11y}.ts` · `src/features/search/lib/search-trigger.ts` · `src/shared/components/MobileMenu.astro` · `tests/a11y/site-wide.test.ts` · `tests/unit/components/nav-a11y.test.ts` · `tests/unit/search/search-trigger.test.ts` · `tests/unit/tooling/robots.test.ts` · `docs/{ADDING-A-PRESENTATION,RUNBOOK}.md` · `docs/adr/ADR-0001…0012` · `.github/{dependabot.yml,workflows/link-check.yml}`
+
+### Files modified
+
+`netlify.toml` (CSP block + robots build step) · `eslint.config.js` (Node globals for scripts/) · `vitest.config.ts` (a11y include) · `.github/workflows/ci.yml` (hardened gates) · `src/shared/layouts/BaseLayout.astro` (nav a11y script, vanilla MobileMenu) · `src/features/theme/lib/theme.ts` (delegation + swap re-sync) · `src/features/search/islands/SearchOverlay.astro` · `src/shared/components/Header.astro` (swap-proof scroll handler) · `src/pages/index.astro` (entrance rerun) · `src/features/presentations/components/PresentationCard.astro` + `src/pages/presentations/index.astro` (heading levels) · `public/robots.txt` · `tests/unit/components/islands.test.tsx` (rewritten) · `tests/unit/search/search-mount.test.tsx` (teardown hygiene) · `tests/unit/home/entrance.test.ts` · `docs/adr/README.md` · permanent docs
+
+### Files removed
+
+`src/shared/components/MobileMenu.tsx` + `MobileMenu.module.css` (vanilla rewrite, D-044)
+
+### Commits made
+
+`test(hardening)` → `feat(security): CSP` → `fix(chrome): navigation resilience + focus management + vanilla MobileMenu` → `fix(a11y): heading order` → `test(a11y): site-wide axe` → `feat(perf): budget gate` → `feat(ops): robots/audit/link/ADR` → `ci(phase-h)` → `docs`. See `git log`.
+
+### Decisions
+
+D-042 (hash-union header CSP via build-time generator — Astro's `security.csp` is incompatible with ClientRouter) · D-043 (budget gate: TD-13 method enforced at build; client:visible deferred hydration reported, not gated — TD-14 resolution) · D-044 (navigation hardening family: delegation, after-swap re-sync, page-load focus/announce, vanilla MobileMenu, entrance rerun) · D-045 (supply-chain audit gate with rationale allowlist) · D-046 (PresentationCard headingLevel prop for heading-order).
+
+### Assumptions
+
+- Phase 7 ≙ Development Plan Phase H (established numbering convention).
+- Playwright E2E and real Lighthouse CI runs are deploy/hardware-dependent — substituted by the jsdom journey suites + build-time gates + manual checklist items (RELEASE_CHECKLIST), consistent with FI-2/FI-3 deferral discipline.
+- CSP enforcement ships with a documented report-only verification step for the first deploy preview (RUNBOOK §5) per TAD deployment discipline.
+
+### Outstanding work
+
+- **Go-live tasks (owner/deploy-dependent):** first deploy + CSP report-only verification, rollback rehearsal, live contact-form submission, Lighthouse/CWV on the real deploy, real-viewport matrix, panel theme-lock verification, VoiceOver pass, WCAG contrast spot-check in a real browser.
+- **CI workflow commits held locally** — GitHub App lacks the `workflows` permission (since Phase 3).
+- Real content (IA-2); T-D7 projector dry-run. See RELEASE_CHECKLIST.
+
+---
+
 ## 2026-08-05 — Phase 6: Remaining Pages & Error Layouts (Development Plan Phase G)
 
 ### Objectives

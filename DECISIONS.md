@@ -352,3 +352,42 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** JS-only form (breaks I1); server function (violates no-backend architecture).
 - **Consequences:** success/error UX depends on the island; the no-JS path lands on Netlify's default handling — acceptable, documented.
 - **Date:** 2026-08-05
+### D-042 — Strict CSP via build-time hash-union header (not Astro's security.csp)
+
+- **Context:** T-H2 / TAD §19.3 require a strict Content-Security-Policy with hash-allowlisted inline code, no `unsafe-inline`. Astro 6's built-in `security.csp` emits per-page `<meta>` policies — but it is explicitly unsupported with `<ClientRouter />` (TAD §6.5 mandates View Transitions): after a client-side navigation the origin page's policy stays active while the swapped-in page's inline styles/scripts carry different hashes, breaking rendering. Meta tags also cannot express `frame-ancestors` (clickjacking).
+- **Reasoning:** serve ONE policy as an HTTP header, containing the UNION of every page's inline script/style hashes. Static content means the union is stable per deploy, and any content the router swaps in is already allowlisted (same build). `scripts/generate-csp.mjs` computes the hashes after each build, verifies CSP preconditions (no inline event handlers, no cross-origin scripts/styles/images, no frames), and writes the managed block in `netlify.toml`; `--check` mode fails CI on drift (lockfile discipline, invariant I5 spirit). All other directives follow the TAD §19.3 shape exactly.
+- **Alternatives:** (a) Astro `security.csp` — rejected (ClientRouter incompatibility + no frame-ancestors); (b) per-page meta injected by a custom post-build step — rejected (same navigation problem); (c) ship report-only permanently — rejected (Dev Plan M5 requires enforcement; the report-only verification step is preserved as a first-deploy-preview procedure in RUNBOOK §5 per TAD deployment discipline).
+- **Consequences:** `netlify.toml` must be regenerated whenever inline scripts/styles change (CI enforces). Known benign violation: ClientRouter inserts one empty `data:`-URL probe script per navigation; it is blocked and functionless (KNOWN_ISSUES CI-4) — `data:` was deliberately NOT added to script-src (it would re-open an XSS vector).
+- **Date:** 2026-08-05
+
+### D-043 — Budget gate methodology: TD-13 enforced at build; client:visible deferred (TD-14 resolution)
+
+- **Context:** T-H3 requires budget enforcement; TD-14 asked the Phase H review to resolve /contact's ~16.8 KB "effective" figure against the 15 KB TAD §14.1 limit.
+- **Reasoning:** `scripts/budgets.mjs` implements the TD-13 standard exactly: eager = real module-script tags + static import closure + island hydration chunks where they fire ON LOAD (client:load / client:media / client:idle). `client:visible` islands hydrate on scroll — not at load — so they are excluded from the gate and reported as a separate transparency column. Under that method /contact eager is 7.24 KB ≤ 15 KB: the overage was a supplementary "what if it hydrated instantly" figure, not a load-time cost. No budget revision needed; ContactForm stays a Preact island per the approved design.
+- **Alternatives:** (a) revise the /contact budget upward — rejected (unnecessary under the standard method); (b) rewrite ContactForm vanilla — rejected (scope change; validation/async state justify the framework); (c) count client:visible eagerly — rejected (measures a cost users only pay on scroll).
+- **Consequences:** pages are discovered from dist (not hard-coded), so IA-2 content cannot break the gate; Coming Soon + error pages are held to the strictest general-page default (15/12/40) since TAD §14.1 names no row for them.
+- **Date:** 2026-08-05
+
+### D-044 — Navigation hardening: delegation, swap re-sync, page-load focus, vanilla MobileMenu
+
+- **Context:** the Phase 7 audit of Astro's ClientRouter found it replaces the whole `<body>` on navigation and does NOT re-run scripts whose content already ran. Element-bound listeners therefore died after the first SPA navigation (theme toggle, search trigger, header scroll), swapped-in controls showed stale state, and the entrance script never re-decided its mode. Separately, TAD §15.4's route-change focus/announce requirement was unimplemented, and MobileMenu's `client:media` hydration pushed /presentations/[slug] to 15.0 KB against its 10 KB budget at mobile widths.
+- **Reasoning:** all chrome behaviour now binds at the DOCUMENT level (survives body swaps): ThemeToggle/search-trigger use click delegation; theme state re-syncs on `astro:after-swap`; the scroll handler re-queries its element per tick; search wiring moved to `lib/search-trigger.ts` for testability. A new `astro:page-load` handler (lib/navA11y.ts) moves focus to the new h1/main and announces the title via a polite live region, skipping the initial load. MobileMenu became a vanilla bundled script (markup/styles/Gate-2 contract identical — it is trigger+panel+trap, exactly the shape D-038 established for chrome) — this is a targeted supersession of D-038's "MobileMenu stays preact" consequence, driven by measured budget failure. The entrance script gained `data-astro-rerun` (its mode is time-based and must re-evaluate on every arrival).
+- **Alternatives:** (a) `data-astro-transition-persist` on the header — rejected (persists stale aria-current/nav state across pages and fights the swap model); (b) re-run all scripts every navigation (`data-astro-rerun` everywhere) — rejected (re-execution side effects: duplicate listeners, re-counted entrance stamps); (c) keep MobileMenu an island and raise the detail budget — rejected (TAD §14.1 is a gate, not a suggestion).
+- **Consequences:** chrome works on every page for the whole session with zero per-navigation re-init cost; island-free routes dropped to 7.2 KB eager JS; detail 7.8 KB ≤ 10. Focus/announce behaviour is unit-tested (jsdom event dispatch). Known gotcha recorded: a `<` inside an Astro frontmatter comment breaks the checker's Props typing (MobileMenu doc comment rewritten).
+- **Date:** 2026-08-05
+
+### D-045 — Supply-chain audit gate with a rationale allowlist
+
+- **Context:** TAD §19.6 mandates `npm audit --audit-level=high` failing CI. The pinned Astro 6 stack carries four high-severity advisories (three astro XSS vectors, one sharp/libvips set) whose fixes live in Astro 7 — an upgrade that is an ADR-level decision (D-001/TAD ADR-0001), not routine maintenance.
+- **Reasoning:** `scripts/audit.mjs` runs the exact TAD gate (full tree, high/critical fails) but allows advisories that are individually documented as unexploitable in THIS codebase: the astro XSS vectors require attacker-controlled transition directives/attribute names (verified absent; content is repo-authored and Zod-validated), and the libvips CVEs require processing malicious images (this pipeline processes only repo-authored assets). Each allowlist entry carries its rationale; entries that stop appearing in audit output fail the gate, so the list can only shrink. Zero new dependencies.
+- **Alternatives:** (a) fail CI forever until Astro 7 — rejected (permanent red gate teaches people to ignore gates); (b) `--audit-level=critical` or skip — rejected (weakens the TAD control); (c) npm overrides for sharp/esbuild — rejected (breaks Astro's pinned ranges; build stability risk).
+- **Consequences:** the Astro 6→7 upgrade is the tracked exit ramp (recorded in KNOWN_ISSUES); the esbuild Windows-dev-server advisory is LOW severity and needs no allowlist entry.
+- **Date:** 2026-08-05
+
+### D-046 — PresentationCard headingLevel prop (heading-order fix)
+
+- **Context:** Phase H site-wide axe scans flagged WCAG 1.3.1 heading-order on /presentations: card titles jumped h1 → h3 (the card component hard-coded h3 for the homepage rail, where it sits under a section h2).
+- **Reasoning:** the heading level is contextual; a `headingLevel` prop (2 | 3, default 3) lets each surface pick the semantically correct level while the visual size stays class-driven (`card__title`). No other surface exists.
+- **Alternatives:** an h2 section heading in the gallery — rejected (the gallery is one list under its h1; an artificial heading hurts the outline); suppressing the axe rule — rejected.
+- **Consequences:** homepage markup unchanged; gallery cards render h2; both verified by the site-wide scans.
+- **Date:** 2026-08-05
