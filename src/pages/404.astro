@@ -1,0 +1,66 @@
+---
+/**
+ * 404 page (Dev Plan T-G4, TAD §16.6, PRD EC-12) — friendly copy with
+ * recovery paths (Home + Presentations). The global header carries the
+ * search trigger. Astro serves this with a real 404 status.
+ */
+import Button from '../shared/ui/Button.astro';
+import BaseLayout from '../shared/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page Not Found" description="This page could not be found." noindex>
+  <main id="main-content">
+    <div class="container not-found">
+      <p class="not-found__code" aria-hidden="true">404</p>
+      <h1 class="not-found__title">Page not found</h1>
+      <p class="not-found__body">
+        The page you're looking for doesn't exist or has moved. Try one of
+        these instead:
+      </p>
+      <div class="not-found__actions">
+        <Button label="Back to Home" variant="secondary" href="/" />
+        <Button label="View Presentations" variant="ghost" href="/presentations" />
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: center;
+    padding-block: var(--space-16);
+    text-align: center;
+  }
+
+  .not-found__code {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-display-xl);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-primary-200);
+  }
+
+  .not-found__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-2);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .not-found__body {
+    max-width: 46ch;
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+  }
+
+  .not-found__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+/**
+ * 500 page (Dev Plan T-G4, TAD §16.6) — rendered for server errors where
+ * the platform supports it; on a purely static deployment the host's own
+ * 500 applies, so this page is the documented fallback (Netlify honours a
+ * custom 500 when present). Friendly copy, one recovery path, no leak of
+ * internals (KB §13.7).
+ */
+import Button from '../shared/ui/Button.astro';
+import BaseLayout from '../shared/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Something Went Wrong" description="Something went wrong on our side." noindex>
+  <main id="main-content">
+    <div class="container server-error">
+      <h1 class="server-error__title">Something went wrong</h1>
+      <p class="server-error__body">
+        An unexpected error occurred on our side. Please try again, or head
+        back to the homepage.
+      </p>
+      <div class="server-error__actions">
+        <Button label="Back to Home" variant="secondary" href="/" />
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .server-error {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: center;
+    padding-block: var(--space-16);
+    text-align: center;
+  }
+
+  .server-error__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-2);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .server-error__body {
+    max-width: 46ch;
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+  }
+
+  .server-error__actions {
+    margin-top: var(--space-2);
+  }
+</style>
