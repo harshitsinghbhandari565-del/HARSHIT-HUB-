@@ -32,9 +32,11 @@ interface Props {
   description?: string;
   /** Current route for nav active states (Design §10.2). */
   activePath?: string;
+  /** Keep a page out of search indexes (TAD §6.4: Coming Soon pages). */
+  noindex?: boolean;
 }
 
-const { title, description, activePath = '/' } = Astro.props;
+const { title, description, activePath = '/', noindex = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -51,6 +53,7 @@ const { title, description, activePath = '/' } = Astro.props;
     <title>{title} · {SITE_NAME}</title>
     {description && <meta name="description" content={description} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <!--
       TAD §14.5 — Astro Fonts API injection point. Each <Font /> emits the
       @font-face rules, the optimized family stack (cssVariable), and preload

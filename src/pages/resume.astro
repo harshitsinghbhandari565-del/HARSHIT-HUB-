@@ -1,0 +1,38 @@
+---
+/**
+ * Resume placeholder (Dev Plan T-G3, TAD §6.4 / F4 resolution).
+ *
+ * The route EXISTS so shared/typed URLs never 404, it renders a
+ * Coming Soon state (Design §18.4), stays OUT of the navigation
+ * (Design §28.2), and carries noindex,follow (TAD §6.4). Real content
+ * arrives in Phase 3 of the roadmap (PRD §18).
+ */
+import Tag from '../shared/ui/Tag.astro';
+import EmptyState from '../shared/ui/EmptyState.astro';
+import BaseLayout from '../shared/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Resume" description="Resume — coming soon." noindex>
+  <main id="main-content">
+    <div class="container coming-soon">
+      <div class="coming-soon__badge">
+        <Tag label="Coming Soon" variant="coming-soon" />
+      </div>
+      <EmptyState
+        icon="lucide:sparkles"
+        title="Resume"
+        message="A full resume and academic record is on its way."
+        action={{ label: 'Back to Home', href: '/' }}
+      />
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .coming-soon {
+    display: grid;
+    gap: var(--space-6);
+    justify-items: center;
+    padding-block: var(--space-16);
+  }
+</style>

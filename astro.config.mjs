@@ -21,8 +21,15 @@ export default defineConfig({
   integrations: [
     // TAD ADR-0002: Preact for the interactive islands (~4 KB shared runtime).
     preact(),
-    // TAD §3.7 / §17.4: sitemap generated from real routes — never hand-maintained.
-    sitemap(),
+    // TAD §3.7 / §17.4: sitemap generated from real routes — never
+    // hand-maintained. Coming Soon pages are noindex and stay out of the
+    // sitemap (TAD §6.4 / §17.4).
+    sitemap({
+      filter: (page) =>
+        !['/projects', '/certificates', '/resume'].some(
+          (excluded) => page.endsWith(excluded) || page.endsWith(`${excluded}/`),
+        ),
+    }),
     // TAD §3.7 + D-006: build-time inline SVG icons (Lucide via @iconify-json).
     // Zero runtime JS; icon names follow the Design Spec vocabulary.
     icon(),
