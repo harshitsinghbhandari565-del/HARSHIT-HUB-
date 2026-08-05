@@ -1,8 +1,8 @@
 /**
  * features/contact — public interface (TAD §5.1 rule 2).
  *
- * Other features may import this module ONLY through this index file,
- * never through deep paths. Implementation arrives in its phase:
- * presentations → Phase D · search → Phase F · theme → Phase C · contact → Phase G.
+ * The contact form island enhances the Netlify form on /contact (the form
+ * works without JavaScript — invariant I1). Netlify handles submission,
+ * spam filtering, and notification with no backend code (ADR-0009).
  */
-export {};
+export { default as ContactForm } from './islands/ContactForm';

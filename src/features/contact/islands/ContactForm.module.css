@@ -1,0 +1,131 @@
+/* ContactForm — Design §11.10 (max-width handled by the page). */
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.label {
+  color: var(--color-neutral-800);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-neutral-900);
+  font-size: var(--text-body);
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) var(--ease-default);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-primary-500);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-error-500);
+}
+
+.fieldError {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--text-body-sm);
+}
+
+.formError {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-error-500);
+  background-color: var(--color-error-100);
+  border-left: 3px solid var(--color-error-500);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body-sm);
+}
+
+.submit {
+  justify-self: start;
+  min-height: 52px;
+  padding: var(--space-4) var(--space-8);
+  color: var(--color-white);
+  font-size: var(--text-body);
+  font-weight: 600;
+  background-color: var(--color-accent-500);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-accent);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    box-shadow var(--duration-fast) var(--ease-default);
+}
+
+.submit:hover {
+  background-color: var(--color-accent-600);
+  box-shadow: var(--shadow-accent-hover);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.privacy {
+  margin: 0;
+  color: var(--color-neutral-600);
+  font-size: var(--text-caption);
+}
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-success-100);
+  border-radius: var(--radius-md);
+}
+
+.successIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--color-success-700);
+}
+
+.successText {
+  margin: 0;
+  color: var(--color-success-700);
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .submit {
+    transition: none;
+  }
+}

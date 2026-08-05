@@ -22,6 +22,13 @@ export const SITE_ABOUT_TEASER =
 export const SITE_CONTACT_TEASER =
   'MOCK CONTACT TEASER — Questions, feedback, or a project in mind? I would love to hear from you.';
 
+/**
+ * Public contact email — MOCK until Harshit's real address arrives
+ * (IA-2 / PRD OQ-4 assumption: email + form). Social links are added to
+ * the contact details when provided.
+ */
+export const SITE_EMAIL = 'hello@harshit.example';
+
 export const SITE_URL = import.meta.env.SITE_URL ?? 'https://harshit-portfolio-hub.netlify.app';
 
 /** Default metadata until Harshit's copy arrives (assumption IA-2). */
