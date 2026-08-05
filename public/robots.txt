@@ -1,5 +1,8 @@
-# TAD §17.4 — environment-aware robots is Phase H work: preview deploys
-# must emit Disallow: / and a smoke test asserts the production value.
-# The Sitemap line activates when the canonical domain is finalized (B7).
+# TAD §17.4 — production policy. Preview/branch deploys are rewritten to
+# "Disallow: /" at build time by scripts/robots.mjs (TD-4).
+# The Sitemap line tracks the canonical site URL (astro.config.mjs); when
+# the custom domain lands (B7), update it there and here.
 User-agent: *
 Allow: /
+
+Sitemap: https://harshit-portfolio-hub.netlify.app/sitemap-index.xml

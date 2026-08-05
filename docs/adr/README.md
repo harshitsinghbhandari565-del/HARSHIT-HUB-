@@ -19,6 +19,6 @@ The project's ADRs are **ADR-0001 … ADR-0012**, authored and accepted in the T
 
 Each carries context, options, decision, trade-offs, consequences, and a **revisit trigger**. Per TAD §22.6, ADRs are never edited — only superseded.
 
-**Status:** canonical text lives in the approved TAD. Migration into individual files in this directory is tracked as KNOWN_ISSUES FI-1 (before launch).
+**Status:** migrated verbatim into individual files in this directory (Phase H, KNOWN_ISSUES FI-1 — resolved). The approved TAD §23 remains the canonical source; these files exist so decisions are discoverable next to the code.
 
 **Implementation-level decisions** (tooling adaptations, scope calls during build) are recorded in `/DECISIONS.md` — they do not supersede ADRs.

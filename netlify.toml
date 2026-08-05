@@ -4,7 +4,9 @@
 # documented drop-in alternative.
 
 [build]
-  command = "npm run build"
+  # robots.mjs rewrites dist/robots.txt to Disallow: / on non-production
+  # deploys (TD-4); Netlify's CONTEXT decides.
+  command = "npm run build && node scripts/robots.mjs"
   publish = "dist"
 
 # ── Security headers (TAD §19.4) ──────────────────────────────────────────
