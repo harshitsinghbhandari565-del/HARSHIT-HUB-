@@ -336,3 +336,19 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** SearchInput as an independent island beside GalleryController — rejected (cross-island URL writes, I6); a second "gallery search" island — rejected (two writers for one URL).
 - **Consequences:** ?q= uses replaceState (refinement, not navigation — TAD §10.2); empty results get the Design §18.3 state with a clear-search reset inside the island's render.
 - **Date:** 2026-08-04
+
+### D-040 — About content via Astro 6 render(entry) with :global prose styles
+
+- **Context:** T-G1 requires long-form Markdown from the content layer (content/site/about.md). Astro 6's content layer exposes `render(entry)` from `astro:content` (not `entry.render()`); the rendered markup is not reachable by the page's scoped styles.
+- **Reasoning:** `render(entry)` is the supported API; prose styling uses `:global()` selectors scoped under `.about-prose` in the page's style block — global reach, page-local namespace.
+- **Alternatives:** hard-coded page markup (violates I4 / content-driven contract); a global prose stylesheet for one page (premature).
+- **Consequences:** if a second prose page appears, extract the prose rules to a shared stylesheet then (YAGNI).
+- **Date:** 2026-08-05
+
+### D-041 — Contact is a Netlify form first; the island only enhances
+
+- **Context:** T-G2 / TAD §18.4: Netlify Forms with honeypot, no backend code (ADR-0009). The form must work without JavaScript (I1).
+- **Reasoning:** the static `<form data-netlify netlify-honeypot>` is the source of truth; ContactForm (client:visible) intercepts submit for inline validation (focus-to-first-invalid, aria-invalid/describedby), async POST, success/error states. Without JS, native submission works unchanged. Honeypot follows TAD §15.6 (off-screen, aria-hidden, tabindex -1, never display:none).
+- **Alternatives:** JS-only form (breaks I1); server function (violates no-backend architecture).
+- **Consequences:** success/error UX depends on the island; the no-JS path lands on Netlify's default handling — acceptable, documented.
+- **Date:** 2026-08-05

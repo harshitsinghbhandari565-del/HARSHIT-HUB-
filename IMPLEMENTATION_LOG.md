@@ -4,6 +4,53 @@ Chronological implementation history. Entries are appended, never replaced.
 
 ---
 
+## 2026-08-05 — Phase 6: Remaining Pages & Error Layouts (Development Plan Phase G)
+
+### Objectives
+
+Deliver the remaining pages per Dev Plan Phase G: T-G1 About (long-form content from the content layer), T-G2 Contact (Netlify form + honeypot + island enhancement), T-G3 Coming Soon placeholders (noindex, out of nav), T-G4 404/500 recovery layouts — plus the two new tracking documents (RELEASE_CHECKLIST.md, PROJECT_STATUS.md).
+
+### Work completed
+
+- **About page (T-G1):** `content/site/about.md` as the new `about` collection; rendered via the Astro 6 `render(entry)` API (D-040) with `:global` prose styling under a page-local namespace; decorative profile visual placeholder; breadcrumb. Copy is a labelled mock (IA-2).
+- **Contact page (T-G2):** Netlify form first (`data-netlify` + `netlify-honeypot` + hidden `form-name`) — submits without JS (I1); ContactForm island (client:visible) adds inline validation with focus-to-first-invalid (`aria-invalid` + `aria-describedby`), async submission, the exact Design §11.10 success copy, an error alert preserving entered values, and privacy microcopy; honeypot off-screen + aria-hidden + tab-skipped (TAD §15.6, D-041); labelled mock email (IA-2 / OQ-4).
+- **Coming Soon (T-G3):** /projects, /certificates, /resume exist (no dead URLs), render the Design §18.4 state (EmptyState + coming-soon Tag + Back to Home), stay out of nav (Design §28.2), carry `noindex, follow` (TAD §6.4); BaseLayout gained a `noindex` prop; sitemap filter excludes the three placeholders (TAD §17.4) — verified in the built sitemap (7 URLs).
+- **Error pages (T-G4):** 404 with friendly copy + Home/Presentations recovery (real 404 status, noindex); 500 with recovery path and no internals (TAD §16.6).
+- **Tracking documents:** RELEASE_CHECKLIST.md (9 sections, status/notes/date per item) and PROJECT_STATUS.md (live snapshot) created; will be maintained through Phase H.
+- **Tests:** 20 new (190 total) — About composition, Contact form contract + labels + honeypot + privacy, ContactForm island interactions (validation/focus, success/error/submitting), Coming Soon ×3 structure + noindex, 404/500 copy + recovery.
+
+### Files created
+
+`src/content/site/about.md` · `src/pages/about.astro` · `src/features/contact/islands/ContactForm.tsx` (+ module css) · `src/features/contact/index.ts` · `src/pages/contact.astro` · `src/pages/{projects,certificates,resume}.astro` · `src/pages/{404,500}.astro` · `tests/fixtures/MockAboutContent.astro` · `tests/unit/pages/{about-contact,coming-soon-errors,contact-form}.test.tsx` · `RELEASE_CHECKLIST.md` · `PROJECT_STATUS.md`
+
+### Files modified
+
+`src/content.config.ts` (about collection) · `src/shared/config/site.ts` (mock email constant) · `src/shared/layouts/BaseLayout.astro` (noindex prop) · `astro.config.mjs` (sitemap filter) · permanent docs
+
+### Commits made
+
+`feat(about)` → `feat(contact)` → `feat(pages): Coming Soon + noindex + sitemap filter` → `feat(pages): 404 + 500` → `test: Phase G suite` → `docs`. See `git log`.
+
+### Decisions
+
+D-040 (About via render(entry) + :global prose styles) · D-041 (Contact = Netlify form first, island enhances; honeypot per TAD §15.6).
+
+### Assumptions
+
+- PRD OQ-4 assumption holds: contact = email + form; socials join when provided.
+- About/Contact/placeholder copy is mock-labelled pending IA-2; replacement is content-only (I4).
+- The 500 page is a documented fallback; the host's own 500 applies where the platform serves it on a static deploy.
+- Phase 6 ≙ Development Plan Phase G (established numbering convention).
+
+### Outstanding work
+
+- **Phase 7 ≙ Dev Plan Phase H:** WCAG 2.2 AA audit both themes, manual keyboard/SR passes, CSP report-only→enforce, Lighthouse CI budgets, Playwright E2E journeys, link-check workflow, ADDING-A-PRESENTATION.md + RUNBOOK.md, rollback rehearsal, go-live prep.
+- Real content (IA-2): decks, tagline/teasers, About bio, contact email/socials, profile image.
+- T-D7 projector dry-run (needs content + panel).
+- Contact budget nuance tracked in KNOWN_ISSUES (TD-14).
+
+---
+
 ## 2026-08-04 — Phase 5: Global Search Experience (Development Plan Phase F)
 
 ### Objectives

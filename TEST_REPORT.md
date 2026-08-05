@@ -11,6 +11,60 @@ Methodology notes (apply to all entries):
 
 ---
 
+## Phase 6 — Remaining Pages & Error Layouts (Development Plan Phase G)
+
+**Date:** 2026-08-05
+
+**Features tested:**
+- About page: content-layer composition via `render(entry)` (fixture component), decorative visual `aria-hidden`, breadcrumb
+- Contact page: Netlify form contract (data-netlify / netlify-honeypot / hidden form-name / POST), real labels for all three fields, honeypot off-screen + `aria-hidden` + `tabindex="-1"`, exact privacy microcopy, mailto details
+- ContactForm island: empty-submit validation with focus-to-first-invalid + `aria-invalid`/`aria-describedby`; invalid-email rejection; success state with the exact Design §11.10 copy and `form-name` in the POST body; error state preserving entered values; disabled-while-submitting (fetch mocked at the network boundary)
+- Coming Soon ×3: Coming Soon state + Back-to-Home recovery + `noindex, follow`
+- 404/500: friendly copy, Home/Presentations recovery paths, no leaked internals
+
+**Automated test count:** 190 total (20 new this phase; 26 files). Breakdown: About 2 · Contact page 4 · ContactForm island 5 · Coming Soon 6 · 404/500 3 · prior phases 170.
+
+**Accessibility results:**
+- Contact form: every field has a real programmatic label; validation errors are linked via `aria-describedby` with focus moved to the first invalid field; honeypot excluded from the a11y tree and tab order.
+- Coming Soon / error pages: heading hierarchy intact, recovery links real anchors, noindex pages excluded from nav.
+- axe-core: zero violations across all new rendered surfaces.
+- Manual keyboard / screen-reader passes on the new pages: Phase H (tracked in RELEASE_CHECKLIST).
+
+**Performance results (build artifacts, gzipped):**
+
+| Route | Eager JS | Budget | + island hydration | CSS | Budget |
+|---|---|---|---|---|---|
+| /about | 6.34 KB | ≤15 ✅ | +8.84 KB (chrome only) | 3.43 KB | ≤12 ✅ |
+| /contact | 6.34 KB | ≤15 ✅ | +10.44 KB (ContactForm) | 3.43 KB | ≤12 ✅ |
+| /projects (et al.) | 6.34 KB | ≤15 ✅ | +8.84 KB | 3.43 KB | ≤12 ✅ |
+| /404 | 6.34 KB | ≤15 ✅ | +8.84 KB | 3.43 KB | ≤12 ✅ |
+
+Eager budgets met on every route. Contact's effective load with ContactForm hydration ≈16.8 KB vs the 15 KB budget: the overage is Preact itself (required by the designed form island); tracked as TD-14 for the Phase H budget review.
+
+**Responsive verification:** contact form max-width 560px (Design §11.10); about two-column from 768px (Design §24.2); placeholders/errors centred grids. Real-viewport matrix: Phase H.
+
+**Browser compatibility:** jsdom + Astro build output; cross-browser matrix Phase H.
+
+**Manual verification:** built dist inspected — 13 routes + /search-index.json generated; sitemap contains exactly the 7 indexable URLs; noindex verified in the built HTML of the three placeholders; 404.html + 500.html emitted.
+
+**Bugs found (this phase):**
+1. `entry.render()` does not exist in Astro 6 — correct API is `render(entry)` from `astro:content` (fixed; D-040).
+2. Sitemap filter missed trailing-slash URLs — placeholders leaked into the sitemap (fixed: match both forms).
+3. jsdom test environment: Node's undici `FormData` rejects jsdom forms (fixed: jsdom FormData stub, documented in the test).
+4. Test assertion false-positive: "no internals" check matched the `--font-inter-stack` variable name (fixed: stack-trace-pattern assertion).
+5. Vitest typing: untyped fetch spies broke `mock.calls` tuple access (fixed: typed stubs).
+
+**Bugs fixed:** all five above (four test/tooling-side, one build-config). No product-code behaviour bugs escaped review.
+
+**Remaining issues:**
+- Contact hydration budget nuance (TD-14) — Phase H budget review.
+- Manual keyboard/SR passes + WCAG 2.2 AA audit both themes — Phase H.
+- Live Netlify form submission test requires a deployed site — Phase H / go-live.
+
+**Overall test status:** ✅ PASS — 190/190 automated, zero regressions, all quality gates green, eager budgets within limits on every route.
+
+---
+
 ## Phase 5 — Global Search Experience (Development Plan Phase F)
 
 **Date:** 2026-08-04
