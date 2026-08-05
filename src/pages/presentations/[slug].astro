@@ -165,3 +165,19 @@ const description =
     line-height: 1.6;
   }
 </style>
+
+<script>
+  // Record the launch in personal recency when the Present action is
+  // clicked (Design §29.3). Progressive enhancement only: the anchor
+  // navigates regardless, and without this script the RecentRail simply
+  // shows the "Latest" fallback (TAD §10.4).
+  import { writeRecency } from '../../features/presentations/lib/recency';
+
+  const slug = window.location.pathname.split('/').filter(Boolean).pop();
+  const present = document.querySelector<HTMLAnchorElement>(
+    'a[href*="docs.google.com"][target="_blank"]',
+  );
+  if (slug && present) {
+    present.addEventListener('click', () => writeRecency(slug));
+  }
+</script>

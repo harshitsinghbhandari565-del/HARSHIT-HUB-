@@ -7,9 +7,16 @@
  * keyboard semantics — the pattern this ADR replaced).
  *
  * Title clamps to two lines on cards (Design §11.2); detail pages never
- * truncate (Design §15.3). Quick-launch is a recent-rail-only affordance
- * (Design §14.3) and is NOT part of this component.
+ * truncate (Design §15.3).
+ *
+ * Quick-launch (Design §11.2) is a RECENT-RAIL-ONLY affordance (Design
+ * §14.3): a direct Slides anchor revealed on desktop hover / keyboard
+ * focus, layered above the hit-area overlay. It is a real anchor — the
+ * recency recording on click is a progressive enhancement added by the
+ * RecentRail island (Design §29.3), so the launch works with JS disabled.
  */
+import { Icon } from 'astro-icon/components';
+
 import PresentationMeta from './PresentationMeta.astro';
 import SubjectVisual from './SubjectVisual.astro';
 import TagRow from './TagRow.astro';
@@ -21,9 +28,13 @@ interface Props {
   subject: Subject;
   date: Date;
   tags: string[];
+  /** Rail-only direct-launch affordance (Design §11.2). */
+  showQuickLaunch?: boolean;
+  /** Required with showQuickLaunch: the /present URL to launch. */
+  slidesUrl?: string;
 }
 
-const { slug, title, subject, date, tags } = Astro.props;
+const { slug, title, subject, date, tags, showQuickLaunch = false, slidesUrl } = Astro.props;
 ---
 
 <article class="card">
@@ -35,6 +46,22 @@ const { slug, title, subject, date, tags } = Astro.props;
     </h3>
     <TagRow tags={tags} overflow />
   </div>
+  {
+    showQuickLaunch && slidesUrl && (
+      <a
+        class="card__quick-launch"
+        data-quick-launch
+        data-slug={slug}
+        href={slidesUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Present “${title}” directly`}
+      >
+        <Icon name="lucide:play" aria-hidden="true" />
+        <span aria-hidden="true">Present</span>
+      </a>
+    )
+  }
 </article>
 
 <style>
@@ -104,4 +131,42 @@ const { slug, title, subject, date, tags } = Astro.props;
 
   /* Keyboard focus lands on the anchor — visible ring via the global
      :focus-visible rule (Design §11.2 focus spec). */
+
+  /* ── Quick-launch (rail-only, Design §11.2) ──
+     Revealed on desktop hover and keyboard focus-within; sits above the
+     hit-area overlay so it stays independently clickable/focusable.
+     Touch devices never show it — tap goes to the detail page. */
+  .card__quick-launch {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-primary-500);
+    font-size: var(--text-body-sm);
+    font-weight: 600;
+    text-decoration: none;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-default);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover .card__quick-launch {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .card:focus-within .card__quick-launch {
+    opacity: 1;
+    pointer-events: auto;
+  }
 </style>
