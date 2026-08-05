@@ -8,6 +8,20 @@
 
 export const SITE_NAME = 'Harshit';
 
+/**
+ * Homepage copy — DEFAULTS ONLY (content pending, IA-2 / D-034).
+ * Replace with Harshit's real tagline/bio when provided; nothing here
+ * is structural. Labelled mock values ship until then.
+ */
+export const SITE_TAGLINE =
+  'MOCK TAGLINE — Building ideas, one presentation at a time.';
+
+export const SITE_ABOUT_TEASER =
+  'MOCK ABOUT TEASER — Student, presenter, and builder. I turn classroom topics into clear, confident presentations — and this hub keeps every one of them a click away.';
+
+export const SITE_CONTACT_TEASER =
+  'MOCK CONTACT TEASER — Questions, feedback, or a project in mind? I would love to hear from you.';
+
 export const SITE_URL = import.meta.env.SITE_URL ?? 'https://harshit-portfolio-hub.netlify.app';
 
 /** Default metadata until Harshit's copy arrives (assumption IA-2). */
