@@ -38,6 +38,23 @@ export default defineConfig(
     extends: [...astro.configs['flat/recommended']],
   },
 
+  // Build tooling (CSP generator, budget gate, …) runs under Node, not in
+  // the browser, and reports to stdout by design.
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        URL: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
+
   // Accessibility lint on islands (Preact JSX) — TAD §15.5 authoring layer.
   {
     files: ['**/*.tsx'],
