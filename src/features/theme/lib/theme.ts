@@ -67,19 +67,26 @@ export function initialTheme(
  * Wire the theme toggle control (D-038). Pure DOM logic so it is
  * unit-testable without eval; the ThemeToggle component's bundled script
  * calls this on load. Idempotent per document.
+ *
+ * The click listener uses document-level delegation and state is re-synced
+ * on `astro:after-swap` (D-044): ClientRouter replaces the whole <body>
+ * on navigation and does NOT re-run scripts with identical content, so
+ * listeners bound to the original toggle element would be orphaned and the
+ * swapped-in toggle would show stale state.
  */
 export function initThemeToggle(doc: Document): void {
-  const toggle = doc.querySelector<HTMLElement>('[data-theme-toggle]');
-  if (!toggle) return;
-
-  const sync = () => {
+  const syncAll = () => {
     const dark = doc.documentElement.dataset.theme === 'dark';
-    toggle.setAttribute('aria-pressed', String(dark));
-    toggle.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
-    toggle.toggleAttribute('data-dark', dark);
+    for (const toggle of Array.from(doc.querySelectorAll<HTMLElement>('[data-theme-toggle]'))) {
+      toggle.setAttribute('aria-pressed', String(dark));
+      toggle.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+      toggle.toggleAttribute('data-dark', dark);
+    }
   };
 
-  toggle.addEventListener('click', () => {
+  doc.addEventListener('click', (event) => {
+    const toggle = (event.target as Element | null)?.closest('[data-theme-toggle]');
+    if (!toggle) return;
     const dark = doc.documentElement.dataset.theme === 'dark';
     const next = dark ? 'light' : 'dark';
     doc.documentElement.dataset.theme = next;
@@ -88,8 +95,10 @@ export function initThemeToggle(doc: Document): void {
     } catch {
       // Storage unavailable — theme applies for this visit only.
     }
-    sync();
+    syncAll();
   });
 
-  sync();
+  doc.addEventListener('astro:after-swap', syncAll);
+
+  syncAll();
 }

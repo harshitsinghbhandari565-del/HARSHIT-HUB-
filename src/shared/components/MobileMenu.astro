@@ -1,0 +1,233 @@
+---
+/**
+ * MobileMenu (Dev Plan T-C2) — hamburger trigger + slide-in panel for
+ * viewports under 768px. Vanilla rewrite of the Phase C Preact island
+ * (D-044): identical markup, styles, and accessibility contract, zero
+ * framework weight — keeps island-free routes inside the TAD §14.1 JS
+ * budgets at mobile widths. Behaviour lives in lib/mobileMenu.ts
+ * (initMobileMenu) so it is unit-testable without eval, mirroring the
+ * ThemeToggle pattern (D-038).
+ *
+ * Without JS the wrapper is hidden (CSS) and Header's static nav stays
+ * visible on mobile — invariant I1.
+ */
+interface Props {
+  links: ReadonlyArray<{ label: string; href: string }>;
+  currentPage?: string;
+}
+
+const { links, currentPage = '/' } = Astro.props;
+---
+
+<div class="mobile-menu">
+  <button
+    type="button"
+    class="mobile-menu__trigger"
+    data-menu-toggle
+    aria-expanded="false"
+    aria-controls="mobile-menu-panel"
+    aria-label="Open menu"
+  >
+    <svg class="mobile-menu__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 5h16M4 12h16M4 19h16"></path>
+    </svg>
+  </button>
+
+  <div
+    id="mobile-menu-panel"
+    class="mobile-menu__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Menu"
+    inert
+  >
+    <div class="mobile-menu__panel-header">
+      <span class="mobile-menu__brand" aria-hidden="true">
+        Harshit<span class="mobile-menu__brand-dot">.</span>
+      </span>
+      <button
+        type="button"
+        class="mobile-menu__close"
+        data-menu-close
+        aria-label="Close menu"
+      >
+        <svg class="mobile-menu__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <nav class="mobile-menu__nav" aria-label="Mobile">
+      <ul class="mobile-menu__list">
+        {links.map((link) => (
+          <li>
+            <a
+              class="mobile-menu__link"
+              href={link.href}
+              aria-current={link.href === currentPage ? 'page' : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<script>
+  import { initMobileMenu } from '../lib/mobileMenu';
+  initMobileMenu(document);
+</script>
+
+<style>
+  /* MobileMenu — trigger + slide-in panel (Design §29.5: 300ms ease-out
+     open, 250ms ease-in close; reduced motion disables transitions via
+     the targeted overrides below). */
+
+  .mobile-menu {
+    display: inline-flex;
+  }
+
+  .mobile-menu__trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--color-neutral-600);
+    background-color: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__trigger:hover {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+
+  .mobile-menu__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-menu__panel {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    flex-direction: column;
+    width: min(320px, 85vw);
+    margin-left: auto;
+    padding: var(--space-4);
+    background-color: var(--color-neutral-50);
+    box-shadow: var(--shadow-xl);
+    visibility: hidden;
+    transform: translateX(100%);
+    transition:
+      transform var(--duration-slow) var(--ease-in),
+      visibility 0s var(--duration-slow);
+  }
+
+  .mobile-menu__panel[data-open] {
+    visibility: visible;
+    transform: translateX(0);
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .mobile-menu__panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+  }
+
+  .mobile-menu__brand {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-4);
+    font-weight: 700;
+    color: var(--color-primary-900);
+  }
+
+  .mobile-menu__brand-dot {
+    color: var(--color-accent-500);
+  }
+
+  .mobile-menu__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--color-neutral-600);
+    background-color: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__close:hover {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+
+  .mobile-menu__nav {
+    flex: 1;
+  }
+
+  .mobile-menu__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-menu__link {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-neutral-600);
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .mobile-menu__link:hover {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+
+  .mobile-menu__link[aria-current='page'] {
+    color: var(--color-primary-500);
+    font-weight: 600;
+    background-color: var(--color-primary-50);
+  }
+
+  /* Hidden without JS — the Header's static nav is the no-JS path (I1). */
+  :global(html:not(.js)) .mobile-menu {
+    display: none;
+  }
+
+  /* Desktop/tablet use the inline nav (Design §29.4). */
+  @media (width >= 768px) {
+    .mobile-menu {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu__trigger,
+    .mobile-menu__close,
+    .mobile-menu__link,
+    .mobile-menu__panel {
+      transition: none;
+    }
+  }
+</style>

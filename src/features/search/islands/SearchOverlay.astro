@@ -26,16 +26,8 @@
 </button>
 
 <script>
-  // Dynamic import on first click (D-038): Preact + SearchDialog load only
-  // when someone actually opens search, so pages nobody searches from never
-  // pay for search JS (TAD §14.1).
-  const trigger = document.querySelector<HTMLButtonElement>('[data-search-trigger]');
-  if (trigger) {
-    trigger.addEventListener('click', async () => {
-      const { openSearchDialog } = await import('./search-mount');
-      void openSearchDialog(trigger);
-    });
-  }
+  import { initSearchTrigger } from '../lib/search-trigger';
+  initSearchTrigger(document);
 </script>
 
 <style>

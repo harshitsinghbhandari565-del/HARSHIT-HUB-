@@ -101,13 +101,14 @@ const isActive = (href: string) => href === currentPage;
 <script>
   // Scroll shadow (Design §29.5: 200ms ease-default; reduced-motion
   // disables the transition globally). Progressive enhancement: without
-  // JS there is simply no shadow.
-  const header = document.querySelector('.header');
-  if (header) {
-    const update = () => header.classList.toggle('header--scrolled', window.scrollY > 10);
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-  }
+  // JS there is simply no shadow. The handler re-queries the header on
+  // every tick (D-044): ClientRouter swaps the <body> without re-running
+  // identical scripts, so a captured element reference goes stale after
+  // the first navigation.
+  const update = () =>
+    document.querySelector('.header')?.classList.toggle('header--scrolled', window.scrollY > 10);
+  update();
+  window.addEventListener('scroll', update, { passive: true });
 </script>
 
 <style>

@@ -44,7 +44,10 @@ const rail = sortPresentations(
   activePath="/"
 >
   <Fragment slot="head">
-    <script is:inline>
+    <!-- data-astro-rerun (D-044): the router skips scripts whose content
+         already ran, but the entrance mode must be re-decided on every
+         arrival (the full/reduced choice is time-based, Design §23.4). -->
+    <script is:inline data-astro-rerun>
       // Entrance mode (Design §23.4): first visit / >30s away = "full"
       // stagger; a quick return = "reduced" simple fade. Runs before
       // first paint; failures leave the page fully static.

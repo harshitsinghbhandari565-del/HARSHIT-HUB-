@@ -32,9 +32,9 @@ vi.mock('astro:content', () => ({
 
 async function extractEntranceScript(): Promise<string> {
   const html = await render(HomePage);
-  const match = html.match(/<script>\s*\/\/ Entrance mode[\s\S]*?<\/script>/);
+  const match = html.match(/<script[^>]*>\s*\/\/ Entrance mode[\s\S]*?<\/script>/);
   expect(match, 'entrance script must exist').not.toBeNull();
-  return match![0].replace(/<\/?script>/g, '');
+  return match![0].replace(/<\/?script[^>]*>/g, '');
 }
 
 function runIn(options: { lastVisit?: number; storageThrows?: boolean }) {
@@ -86,5 +86,12 @@ describe('Entrance-mode guard (Design §23.4)', () => {
     expect(() => dom.window.eval(script)).not.toThrow();
     expect(dom.window.document.documentElement.dataset.entrance).toBeUndefined();
     dom.window.close();
+  });
+
+  it('is marked data-astro-rerun so the mode is re-decided on SPA returns (D-044)', async () => {
+    const html = await render(HomePage);
+    const tag = html.match(/<script[^>]*>\s*\/\/ Entrance mode/);
+    expect(tag, 'entrance script tag').not.toBeNull();
+    expect(tag![0]).toContain('data-astro-rerun');
   });
 });

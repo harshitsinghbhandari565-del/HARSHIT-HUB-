@@ -1,47 +1,32 @@
 /**
- * Phase C chrome — interactive tests: MobileMenu island (Gate 2:
- * keyboard + pointer, focus trap, aria-expanded; D-018 pattern) and
- * ThemeToggle vanilla script (D-038: container render + script eval).
+ * Phase C chrome — interactive tests: MobileMenu (Gate 2: keyboard +
+ * pointer, focus trap, aria-expanded) and ThemeToggle. Both are vanilla
+ * bundled-script components (D-038 ThemeToggle, D-044 MobileMenu):
+ * container render + init-function wiring, no script eval.
  */
 import { JSDOM } from 'jsdom';
-import { render as preactRender } from 'preact';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import MobileMenu from '../../../src/shared/components/MobileMenu';
+import MobileMenu from '../../../src/shared/components/MobileMenu.astro';
 import ThemeToggle from '../../../src/features/theme/islands/ThemeToggle.astro';
 import { initThemeToggle, THEME_STORAGE_KEY } from '../../../src/features/theme/lib/theme';
+import { initMobileMenu } from '../../../src/shared/lib/mobileMenu';
 import { render as containerRender } from '../helpers/render';
 
 const LINKS = [
   { label: 'Presentations', href: '/presentations' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
-] as const;
+];
 
 let dom: JSDOM;
 let host: HTMLElement;
-
-// Preact defers re-render and effect execution via its own timers; fixed
-// tick counts race them. Poll for an observable condition instead.
-async function waitFor(condition: () => boolean, what: string, timeoutMs = 2000) {
-  const start = Date.now();
-  while (!condition()) {
-    if (Date.now() - start > timeoutMs) throw new Error(`waitFor timed out: ${what}`);
-    await new Promise((resolve) => setTimeout(resolve, 5));
-  }
-}
-
-const flush = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await new Promise((resolve) => setTimeout(resolve, 0));
-};
 
 function setGlobals() {
   const g = globalThis as unknown as Record<string, unknown>;
   g.window = dom.window;
   g.document = dom.window.document;
   g.localStorage = dom.window.localStorage;
-  g.matchMedia = (query: string) => ({ matches: false, media: query }) as MediaQueryList;
 }
 
 function clearGlobals() {
@@ -49,7 +34,6 @@ function clearGlobals() {
   delete g.window;
   delete g.document;
   delete g.localStorage;
-  delete g.matchMedia;
 }
 
 beforeEach(() => {
@@ -66,38 +50,33 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  preactRender(null, host);
   clearGlobals();
   dom.window.close();
 });
 
-describe('MobileMenu island', () => {
+describe('MobileMenu (vanilla, D-044)', () => {
+  async function mount(currentPage = '/'): Promise<void> {
+    const html = await containerRender(MobileMenu, {
+      props: { links: LINKS, currentPage },
+    });
+    host.innerHTML = html.replace(/<script[\s\S]*?<\/script>/g, '');
+    initMobileMenu(dom.window.document);
+  }
+
   function query() {
     const doc = dom.window.document;
     return {
       trigger: doc.querySelector('[data-menu-toggle]') as HTMLButtonElement,
       panel: doc.getElementById('mobile-menu-panel') as HTMLElement,
-      closeButton: doc.querySelector('[aria-label="Close menu"]') as HTMLButtonElement,
+      closeButton: doc.querySelector('[data-menu-close]') as HTMLButtonElement,
       main: doc.querySelector('main') as HTMLElement,
       footer: doc.querySelector('footer') as HTMLElement,
       links: Array.from(doc.querySelectorAll('#mobile-menu-panel nav a')) as HTMLAnchorElement[],
     };
   }
 
-  async function openMenu() {
-    const { trigger } = query();
-    trigger.click();
-    // Wait for the open effect (scroll lock proves the effect body ran,
-    // i.e. the trap and Escape listeners are attached).
-    await waitFor(
-      () => dom.window.document.documentElement.style.overflow === 'hidden',
-      'menu open effect',
-    );
-  }
-
   it('starts closed: collapsed trigger, inert panel, page interactive', async () => {
-    preactRender(<MobileMenu links={LINKS} currentPage="/" />, host);
-    await flush();
+    await mount();
     const { trigger, panel, main } = query();
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(trigger.getAttribute('aria-controls')).toBe('mobile-menu-panel');
@@ -106,55 +85,43 @@ describe('MobileMenu island', () => {
   });
 
   it('opens on click: focus moves in, page goes inert, scroll locks', async () => {
-    preactRender(<MobileMenu links={LINKS} currentPage="/" />, host);
-    await flush();
-    await openMenu();
-    const { trigger, panel, closeButton, main, footer } = query();
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(panel.hasAttribute('inert')).toBe(false);
-    expect(dom.window.document.activeElement).toBe(closeButton);
-    expect(main.hasAttribute('inert')).toBe(true);
-    expect(footer.hasAttribute('inert')).toBe(true);
+    await mount();
+    const { trigger } = query();
+    trigger.click();
+    const opened = query();
+    expect(opened.trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(opened.panel.hasAttribute('inert')).toBe(false);
+    expect(dom.window.document.activeElement).toBe(opened.closeButton);
+    expect(opened.main.hasAttribute('inert')).toBe(true);
+    expect(opened.footer.hasAttribute('inert')).toBe(true);
     expect(dom.window.document.documentElement.style.overflow).toBe('hidden');
   });
 
   it('closes on Escape and returns focus to the trigger', async () => {
-    preactRender(<MobileMenu links={LINKS} currentPage="/" />, host);
-    await flush();
-    await openMenu();
+    await mount();
+    query().trigger.click();
     const { trigger, panel, main } = query();
     panel.dispatchEvent(
       new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
     );
-    await waitFor(
-      () =>
-        trigger.getAttribute('aria-expanded') === 'false' && !main.hasAttribute('inert'),
-      'Escape close + inert cleanup',
-    );
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(dom.window.document.activeElement).toBe(trigger);
     expect(main.hasAttribute('inert')).toBe(false);
     expect(dom.window.document.documentElement.style.overflow).not.toBe('hidden');
   });
 
   it('closes via the close button and returns focus to the trigger', async () => {
-    preactRender(<MobileMenu links={LINKS} currentPage="/" />, host);
-    await flush();
-    await openMenu();
+    await mount();
+    query().trigger.click();
     const { trigger, closeButton } = query();
     closeButton.click();
-    await waitFor(
-      () =>
-        trigger.getAttribute('aria-expanded') === 'false' &&
-        !query().main.hasAttribute('inert'),
-      'close button + inert cleanup',
-    );
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(dom.window.document.activeElement).toBe(trigger);
   });
 
   it('traps Tab focus inside the open panel', async () => {
-    preactRender(<MobileMenu links={LINKS} currentPage="/" />, host);
-    await flush();
-    await openMenu();
+    await mount();
+    query().trigger.click();
     const { closeButton, links } = query();
     const lastLink = links[links.length - 1];
     lastLink.focus();
@@ -174,8 +141,7 @@ describe('MobileMenu island', () => {
   });
 
   it('renders nav links with the active page marked', async () => {
-    preactRender(<MobileMenu links={LINKS} currentPage="/about" />, host);
-    await flush();
+    await mount('/about');
     const { links } = query();
     expect(links).toHaveLength(3);
     const current = links.find((a) => a.getAttribute('aria-current') === 'page');
@@ -186,7 +152,7 @@ describe('MobileMenu island', () => {
 describe('ThemeToggle (vanilla script, D-038)', () => {
   async function mount(): Promise<HTMLButtonElement> {
     const html = await containerRender(ThemeToggle);
-    host.innerHTML = html.replace(/<script[\s\S]*?<\/script>/, '');
+    host.innerHTML = html.replace(/<script[\s\S]*?<\/script>/g, '');
     initThemeToggle(dom.window.document);
     return host.querySelector('[data-theme-toggle]') as HTMLButtonElement;
   }
@@ -215,5 +181,45 @@ describe('ThemeToggle (vanilla script, D-038)', () => {
     const button = await mount();
     expect(button.getAttribute('aria-pressed')).toBe('true');
     expect(button.getAttribute('aria-label')).toBe('Switch to light theme');
+  });
+});
+
+describe('navigation resilience (D-044: ClientRouter swaps the body without re-running identical scripts)', () => {
+  it('ThemeToggle: a swapped-in toggle works and syncs to the current theme', async () => {
+    const html = await containerRender(ThemeToggle);
+    const markup = html.replace(/<script[\s\S]*?<\/script>/g, '');
+    host.innerHTML = markup;
+    initThemeToggle(dom.window.document);
+    (host.querySelector('[data-theme-toggle]') as HTMLButtonElement).click();
+    expect(dom.window.document.documentElement.dataset.theme).toBe('dark');
+
+    // Simulate the router swap: fresh body content, same document.
+    host.innerHTML = markup;
+    dom.window.document.dispatchEvent(new dom.window.Event('astro:after-swap'));
+
+    const swapped = host.querySelector('[data-theme-toggle]') as HTMLButtonElement;
+    // SSR markup says light; the after-swap resync corrects the state.
+    expect(swapped.getAttribute('aria-pressed')).toBe('true');
+    swapped.click(); // delegated listener still wired
+    expect(dom.window.document.documentElement.dataset.theme).toBe('light');
+  });
+
+  it('MobileMenu: a swapped-in menu opens and closes', async () => {
+    const html = await containerRender(MobileMenu, { props: { links: LINKS, currentPage: '/' } });
+    const markup = html.replace(/<script[\s\S]*?<\/script>/g, '');
+    host.innerHTML = markup;
+    initMobileMenu(dom.window.document);
+
+    // Simulate the router swap.
+    host.innerHTML = markup;
+
+    const trigger = host.querySelector('[data-menu-toggle]') as HTMLButtonElement;
+    trigger.click();
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    const panel = dom.window.document.getElementById('mobile-menu-panel') as HTMLElement;
+    expect(panel.hasAttribute('inert')).toBe(false);
+    (host.querySelector('[data-menu-close]') as HTMLButtonElement).click();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(dom.window.document.activeElement).toBe(trigger);
   });
 });
