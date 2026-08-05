@@ -8,6 +8,7 @@ Every discovered concern is recorded here — never silently ignored.
 |---|---|---|
 | TD-7 | Fonts not self-hosted | **Resolved in Phase 1** — Astro Fonts API local provider; hashed self-hosted woff2, latin subset, swap, metric-adjusted fallbacks, first-paint preloads only (D-016) |
 | TD-9 | `astro check` hint in eslint.config.js | **Resolved in Phase 1** — migrated to ESLint core `defineConfig()`; typecheck now 0 errors / 0 warnings / 0 hints |
+| TD-1 | Temporary index.astro placeholder shell | **Resolved in Phase 4** — homepage assembly replaced the shell (TD-1 closed in the Phase E commit) |
 
 ## Current Issues
 
@@ -16,7 +17,7 @@ Every discovered concern is recorded here — never silently ignored.
 | CI-1 | **T-D7 projector dry-run pending** — the M3 manual gate needs Harshit's real Slides/Dropbox URLs (IA-2) and physical panel access; everything automatable around it is test-verified (D-031) | Open — blocked on content + hardware |
 | CI-2 | **Mock seed content live** — three labeled mock presentations (D-029) render until Harshit's real decks replace them | Open — replacement is a content-only change |
 
-_All quality gates green at Phase 3 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 113/113, build clean; budgets within TAD §14.1 limits — see TEST_REPORT.md)._
+_All quality gates green at Phase 4 completion (typecheck 0/0/0, ESLint 0, Stylelint 0, tests 141/141, build clean; homepage budgets JS ≈17.4 KB gz ≤ 20 KB, CSS 5.0 KB ≤ 15 KB — see TEST_REPORT.md)._
 
 ## Technical Debt
 
@@ -30,6 +31,7 @@ _All quality gates green at Phase 3 completion (typecheck 0/0/0, ESLint 0, Style
 | TD-6 | View Transitions focus management (`astro:page-load` handler: focus to `<h1>`, title announcement) not yet implemented | TAD §15.4 | Lands with real navigation in Phase C; must not ship to users without it |
 | TD-8 | Placeholder favicon | Initialization | Replace when design provides the brand mark |
 | TD-10 | Skeleton/loading detailed spec lives in Design v1 (not delivered); current Skeleton is a conservative, token-driven placeholder with documented semantics (aria-hidden; consumers announce loading where needed) | Phase 1 (D-018 era) | Replace/extend when Design v1 loading-state spec arrives |
+| TD-12 | Homepage copy constants are labelled MOCK (tagline, about/contact teasers — D-034) and the About teaser visual is a gradient placeholder pending the profile image | Phase 4 | Content-only replacements when Harshit's words/image arrive |
 | TD-11 | Tablet "More" `<details>` dropdown does not auto-close on outside click or Escape (native disclosure behavior; D-020) | Phase 2 | If review deems it needed, add a small shared script or promote to an island before Phase F |
 
 ## Future Improvements

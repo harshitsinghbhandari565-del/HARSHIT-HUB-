@@ -4,6 +4,54 @@ Chronological implementation history. Entries are appended, never replaced.
 
 ---
 
+## 2026-08-04 — Phase 4: Homepage / Landing Experience (Development Plan Phase E)
+
+### Objectives
+
+Deliver the homepage per Dev Plan Phase E: T-E1 Hero with optimized LCP and entrance choreography, T-E2 RecentRail island with client-side recency (Design §13.2 dual strategy), T-E3 About/Contact teaser blocks — assembling the systems built in prior phases rather than rebuilding any of them.
+
+### Work completed
+
+- **Recency foundation:** `features/presentations/lib/recency.ts` — validated per-visitor launch history (newest-first, deduped, capped at 5, corrupt data discarded, blocked storage no-op) + `resolveRecentSlugs` for the rail (Design §13.2; TAD §10.4 no-flicker rule).
+- **Homepage copy constants (D-034):** labelled MOCK tagline + about/contact teasers in `site.ts` until Harshit's real words arrive (IA-2) — content-driven, replacement is a config edit.
+- **Hero (T-E1):** Design §11.7 composition — overline, brand name with accent period, tagline, CTA row with the U2 hierarchy fix (View Presentations at primary height, Electric Blue reserved for Present). Entrance choreography per Design §23.4 + ADR-0008 (D-032): `html.js` + `data-entrance` gating, hero name transform-only (LCP paints frame one), full vs reduced mode decided by an inline sessionStorage-timestamp guard in the head slot, no-JS fully static (I1).
+- **Quick-launch + recency recording (D-033):** rail-only quick-launch on PresentationCard — sibling anchor layered above the hit-area overlay (ADR-0007 rule 3), desktop hover + keyboard focus-within only, real anchor (works no-JS); RecentRail records launches on click; detail page records via a small deferred script (Design §29.3, progressive enhancement).
+- **RecentRail island (T-E2):** client:load enhancement of the server-rendered rail: untouched "Latest" fallback without recency; reorder + heading swap with validated recency; stale slugs dropped; DOM ownership after mount (D-030); deterministic `data-rail-mounted` marker (D-036).
+- **Teasers (T-E3):** AboutTeaser (labelled section, decorative placeholder visual until the profile image arrives, Read More → /about) + ContactTeaser (Get in Touch → /contact), in shared/components as content-agnostic composition (D-035).
+- **Homepage assembly:** index.astro replaces the initialization shell — **TD-1 resolved**. Rail entrance stagger (550ms heading, cards from 600ms/80ms steps) dropped automatically when the island reorders.
+- **Tests:** 28 new (141 total) — recency lib, Hero/teasers, homepage page (content boundary mocked, D-028), RecentRail island interactions, entrance guard executed in jsdom.
+
+### Files created
+
+`src/features/presentations/lib/recency.ts` · `src/shared/components/Hero.astro` · `src/shared/components/AboutTeaser.astro` · `src/shared/components/ContactTeaser.astro` · `src/features/presentations/islands/RecentRail.tsx` (+ module css) · `tests/unit/presentations/recency.test.ts` · `tests/unit/home/{homepage,hero,entrance}.test.ts` · `tests/unit/home/recent-rail.test.tsx`
+
+### Files modified
+
+`src/shared/config/site.ts` (MOCK copy constants) · `src/features/presentations/components/PresentationCard.astro` (quick-launch) · `src/pages/presentations/[slug].astro` (recency recording script) · `src/pages/index.astro` (full homepage, placeholder replaced) · permanent docs
+
+### Commits made
+
+`feat(home): recency lib + copy` → `feat(home): Hero (T-E1)` → `feat(presentations): quick-launch + recency recording` → `feat(home): RecentRail (T-E2)` → `feat(home): teasers + assembly (T-E3, TD-1)` → `test: Phase E suite` → `docs`. See `git log`.
+
+### Decisions
+
+D-032 (entrance gating mechanism; transform-only name) · D-033 (quick-launch sibling anchor + enhancement-only recording) · D-034 (labelled MOCK copy constants) · D-035 (homepage sections in shared/components; RecentRail in features/presentations) · D-036 (data-rail-mounted marker for deterministic tests).
+
+### Assumptions
+
+- Homepage copy constants stay labelled MOCK until Harshit's real tagline/bio/teasers arrive (IA-2 family).
+- Profile visual stays a decorative gradient placeholder until a profile image is provided.
+- Rail shows a reorder/subset of the server-rendered top-3 (TAD §10.4 "filter to slugs that still exist") — recency never requires rendering un-served cards.
+- Phase 4 ≙ Development Plan Phase E (established numbering convention).
+
+### Outstanding work
+
+- Real homepage copy + profile image when Harshit provides them (content-only changes).
+- **Phase 5 ≙ Dev Plan Phase F:** search index endpoint, matcher, SearchOverlay island wired into the header + gallery row.
+- Phase H: browser-level verification (Playwright), CWV field data, both-theme page axe.
+
+---
+
 ## 2026-08-04 — Phase 3: Presentation Gallery & Engine (Development Plan Phase D)
 
 ### Objectives

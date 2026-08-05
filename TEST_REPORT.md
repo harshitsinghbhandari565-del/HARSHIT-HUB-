@@ -11,6 +11,55 @@ Methodology notes (apply to all entries):
 
 ---
 
+## Phase 4 — Homepage / Landing Experience (Development Plan Phase E)
+
+**Date:** 2026-08-04
+
+**Features tested:**
+- Recency library: storage discipline (missing/blocked/malformed/foreign data), dedupe + newest-first ordering, RECENCY_MAX cap, silent blocked-storage behaviour, `resolveRecentSlugs` stale-slug filtering and max parameter (Design §13.2)
+- Hero: overline/name + accent dot/tagline/CTA structure and targets; axe-clean
+- About/Contact teasers: labelled sections, decorative visual `aria-hidden`, Read More → /about, Get in Touch → /contact; axe-clean
+- Homepage assembly: hero contract; rail renders top-3 published newest-first with quick-launch anchors to `/present` URLs; unpublished fixture excluded; "Latest Presentations" server-rendered heading; teasers' targets; initialization placeholder gone; entrance guard script present
+- RecentRail island: untouched fallback without recency; reorder + heading swap with recency; stale-slug filtering; quick-launch click records recency; corrupt-data fail-safe — all waits condition-based on `data-rail-mounted` (D-036)
+- Entrance-mode guard executed in jsdom: first visit → full; <30s return → reduced; >30s → full again; blocked storage → document untouched (Design §23.4)
+
+**Automated test count:** 141 total (28 new this phase; 17 files). Breakdown: recency 13 · hero/teasers 5 · homepage page 6 · RecentRail island 5 · entrance guard 4 · prior phases 113.
+
+**Accessibility results:**
+- axe-core: zero violations on Hero, AboutTeaser, ContactTeaser, and homepage fragments.
+- Keyboard: quick-launch revealed on `:focus-within` (keyboard users can reach it without hover); skip link and focus-visible rings unchanged from prior phases.
+- Semantics: labelled sections (`aria-labelledby`), decorative elements `aria-hidden`, rail is a real `<ul>` list.
+- ADR-0008 upheld: hero name (LCP) has no opacity animation — verified by construction (transform-only keyframes).
+- No-JS: page fully static without JS (entrance gated on `html.js`); quick-launch and Present anchors are real links (I1).
+- Browser-level keyboard/screen-reader passes: Phase H (tracked).
+
+**Performance results (build artifacts, gzipped):**
+- Homepage JS ≈17.4 KB (ClientRouter 5.35 + preact core 4.37 + signals/hooks/client/jsxRuntime ≈5.7 + RecentRail 0.63 + recency lib 0.34 + MobileMenu 1.38 mobile-only) ≤ 20 KB budget ✅.
+- Homepage CSS 5.0 KB ≤ 15 KB ✅. No route exceeds its budget; zero new dependencies.
+- Entrance animation is pure CSS — zero added JS on the critical path; LCP element unanimated in opacity (ADR-0008).
+
+**Responsive verification:** rail horizontal scroll + snap on mobile → 2-col tablet → 3-col desktop/panel (Design §29.4); teasers stack → two-column about at 768px; hero display-lg → display-xl at 768px. Real-viewport E2E: Phase H.
+
+**Browser compatibility:** jsdom + Astro build output; cross-browser matrix Phase H.
+
+**Manual verification:** built `dist/index.html` inspected — hero, rail data contract (data-rail, data-slug, data-quick-launch ×3), teasers, entrance script, no placeholder shell.
+
+**Bugs found (this phase):**
+1. Detail-page recency script closed with a stray `</style>` tag (fixed: `</script>`).
+2. Entrance inline script used `var`/named-empty-catch — lint failures (fixed: `const` + optional catch binding).
+3. Quick-launch test raced Preact's deferred mount effect — flaky by construction (fixed properly: island exposes `data-rail-mounted`; tests wait on the marker — D-036; intermediate 100ms-sleep version replaced).
+
+**Bugs fixed:** all three above. No product-code behaviour bugs escaped review.
+
+**Remaining issues:**
+- MOCK homepage copy + placeholder about visual until Harshit's content arrives (TD-12, D-034).
+- T-D7 projector dry-run still pending (CI-1, carried from Phase 3).
+- Phase H: browser-level axe/keyboard/screen-reader, real-viewport matrix, CWV field data.
+
+**Overall test status:** ✅ PASS — 141/141 automated, zero axe violations, all quality gates green, budgets within limits, zero regressions from Phases 1–3.
+
+---
+
 ## Phase 3 — Presentation Gallery & Engine (Development Plan Phase D)
 
 **Date:** 2026-08-04

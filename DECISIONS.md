@@ -272,3 +272,43 @@ Implementation-level decisions. Architecture-level decisions live in `docs/adr/`
 - **Alternatives:** mark the gate done on mock URLs — rejected: false assurance on the product's most critical path.
 - **Consequences:** M3's "manually validated on a physical projector" item stays open and is tracked in KNOWN_ISSUES; everything automatable around it (markup contract, URL derivation, backup behaviour) is test-verified.
 - **Date:** 2026-08-04
+
+### D-032 — Entrance choreography via html.js + data-entrance gating
+
+- **Context:** Design §23.4 defines a staggered first-visit entrance and a reduced 300ms fade for returns within 30s; ADR-0008 exempts the LCP hero name from opacity animation.
+- **Reasoning:** an inline guard in the homepage head slot reads/writes a sessionStorage timestamp and sets `html[data-entrance=full|reduced]` before first paint; CSS animations apply only under `html.js[data-entrance]`, so no-JS visitors (I1) and reduced-motion users get static content. The name animates transform-only, so LCP paints on frame one.
+- **Alternatives:** JS-driven animation library — rejected (budget + I1); CSS-only with no mode distinction — rejected (violates the design's return-visit rule).
+- **Consequences:** one tiny blocking inline script (hash-allowlisted when CSP enforcement lands); entrance CSS is gated but ordinary page CSS is untouched.
+- **Date:** 2026-08-04
+
+### D-033 — Quick-launch is a layered sibling; recency recording is enhancement-only
+
+- **Context:** Design §11.2 adds a "▶ Present" affordance on recent-rail cards; ADR-0007 forbids nested interactive elements.
+- **Reasoning:** the quick-launch is an anchor SIBLING positioned above the title anchor's ::after overlay (ADR-0007 rule 3) — valid HTML, independently focusable (revealed on desktop hover and keyboard focus-within, never on touch). It is a real anchor to the /present URL, so launching works with JS disabled; the RecentRail island's delegated click listener only RECORDS recency (Design §29.3) and never intercepts navigation. The detail page records launches via a small deferred script with the same enhancement-only posture.
+- **Alternatives:** button + JS launch — rejected (breaks I1 and middle-click); nesting inside the card link — rejected (ADR-0007 violation).
+- **Consequences:** recency is best-effort by design; without JS the rail shows the "Latest" fallback (TAD §10.4) — acceptable per the design's dual strategy.
+- **Date:** 2026-08-04
+
+### D-034 — Labelled MOCK homepage copy in site config
+
+- **Context:** the hero tagline and teaser copy are Harshit's words (content pending, IA-2); the homepage cannot wait for them structurally.
+- **Reasoning:** constants in `shared/config/site.ts` clearly prefixed "MOCK" keep the structure content-driven (I4) and the replacement path a config edit — the same posture as the Phase 3 mock decks (D-029). Nothing mock reaches styling or layout decisions.
+- **Alternatives:** hard-coded strings in components (violates I4); blocking the phase on content (stalls the critical path for no structural reason).
+- **Consequences:** mock wording is publicly visible until replaced; tracked under KNOWN_ISSUES CI-2 family.
+- **Date:** 2026-08-04
+
+### D-035 — Homepage sections live in shared/components; RecentRail in features/presentations
+
+- **Context:** TAD §5 has no `home` feature folder; Hero/teasers and the rail island needed homes that respect the approved structure and import rules.
+- **Reasoning:** Hero/AboutTeaser/ContactTeaser are content-agnostic composition (copy from config, links to routes; no domain data access) — `shared/components` is the only approved home that keeps every rule intact. RecentRail operates on presentation cards + recency — presentation domain → `features/presentations/islands`, consistent with GalleryController.
+- **Alternatives:** a new `features/home` — rejected (not in the approved structure; would set a precedent for scope-shaped folders); sections in `pages/` — rejected (Astro treats pages/ files as routes).
+- **Consequences:** if the homepage ever gains domain logic, it moves to a feature then — not before (YAGNI).
+- **Date:** 2026-08-04
+
+### D-036 — RecentRail exposes a data-rail-mounted marker
+
+- **Context:** island tests that clicked quick-launch raced Preact's deferred mount effect (listener attached after the test's fixed-tick wait) — a flaky-by-construction pattern.
+- **Reasoning:** the mount effect now sets `data-rail-mounted` after attaching the listener; tests wait for the marker via the condition-based waitFor (D-025). Deterministic, zero arbitrary sleeps, and the attribute is harmless in production (styling-inert).
+- **Alternatives:** longer fixed waits (still racy under load — observed); fake timers (brittle against Preact internals).
+- **Consequences:** one extra attribute on the island root; the anti-flake pattern extends to future islands.
+- **Date:** 2026-08-04
