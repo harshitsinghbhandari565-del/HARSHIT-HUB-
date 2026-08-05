@@ -17,6 +17,7 @@ Every discovered concern is recorded here — never silently ignored.
 | — | Vitest unhandled errors in search-mount suite (deferred Preact work after teardown; fails the run) | **Resolved in Phase 7** — tests settle observable markers before teardown + afterEach timer flush; 0 unhandled errors |
 | — | ClientRouter navigations broke chrome listeners + stale toggle state (Phase 7 audit) | **Resolved in Phase 7 (D-044)** — document-level delegation + `astro:after-swap` re-sync |
 | — | Gallery heading-order axe violation (h1 → h3) | **Resolved in Phase 7 (D-046)** — PresentationCard `headingLevel` prop |
+| — | TAD §17.2/§17.3 unimplemented (no canonical/OG/Twitter metadata, no JSON-LD) — found by the Phase 7 compliance audit | **Resolved in Phase 7 (D-047)** — SeoHead + jsonLd builders + integration suite; og:image awaits the IA-2 brand asset |
 
 ## Current Issues
 
@@ -28,7 +29,7 @@ Every discovered concern is recorded here — never silently ignored.
 | CI-4 | **Benign CSP violation on every client-side navigation** — ClientRouter inserts one empty `data:`-URL probe script (timing heuristic); strict CSP blocks it. No functional impact (nothing consumes it); `data:` deliberately not allowlisted (XSS vector). Violation noise only; disappears if/when Astro changes the router | Open — accepted, documented (D-042) |
 | CI-5 | **Astro 6 pinned-stack advisories** — three astro XSS advisories (no reachable attack surface in this codebase: no transition:* directives, only constant attribute spreads, repo-authored content) + sharp/libvips CVEs (only repo-authored images processed). Allowlisted with rationales in `scripts/audit.mjs` (D-045); gate fails on stale entries | Open — exit ramp is the Astro 6→7 upgrade (ADR-level decision) |
 
-_All quality gates green at Phase 7 completion: typecheck 0/0/0, ESLint 0, Stylelint 0, tests 233/233 (29 files, incl. 24 site-wide axe scans), build clean (12 pages + search index), budgets within TAD §14.1 on every route, CSP + robots + link health + audit gates green._
+_All quality gates green at Phase 7 completion: typecheck 0/0/0, ESLint 0, Stylelint 0, tests 250/250 (32 files, incl. 24 site-wide axe scans + 11 SEO integration checks), build clean (12 pages + search index), budgets within TAD §14.1 on every route, CSP + robots + link health + audit gates green._
 
 ## Technical Debt
 

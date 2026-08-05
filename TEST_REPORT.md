@@ -25,12 +25,14 @@ Methodology notes (apply to all entries):
 5. **Gallery heading-order (WCAG 1.3.1)** — h1 → h3 skip found by the new site-wide axe scans; fixed via PresentationCard `headingLevel` (D-046).
 6. Entrance script never re-ran on SPA returns home → `data-astro-rerun` (Design §23.4 time logic restored); asserted in entrance.test.ts.
 
-**New automated coverage (43 new tests → 233 total, 29 files):**
+**New automated coverage (60 new tests → 250 total, 32 files):**
 - `tests/a11y/site-wide.test.ts` — every built page × light/dark under axe (wcag2a/2aa/22aa + best-practice): **24 scans, zero violations**. Skips cleanly when dist/ absent; CI runs it post-build.
 - Navigation resilience: ThemeToggle swap re-sync + delegated click; MobileMenu open/close after a simulated swap.
 - `search-trigger.test.ts` — delegation, post-swap behaviour, non-trigger clicks (search-mount mocked at the module boundary).
 - `nav-a11y.test.ts` — initial-load no-steal, focus + announce on navigation, main fallback, announcer recreation across swaps.
 - `robots.test.ts` — production/preserve/preview-rewrite/self-heal/fail-closed over the real script.
+- `tests/unit/seo/jsonld.test.ts` — JSON-LD builders + serializer safety (hostile `</script>` payloads, parser transparency).
+- `tests/integration/seo.test.ts` — built-output checks for canonical/OG/Twitter/robots and JSON-LD validity/drift (TAD §17.2/§17.3).
 
 **Quality gates (all green):**
 
@@ -39,7 +41,7 @@ Methodology notes (apply to all entries):
 | Typecheck (astro check) | 0 errors / 0 warnings / 0 hints |
 | ESLint | 0 (incl. new Node-globals block for scripts/) |
 | Stylelint | 0 |
-| Vitest | **233/233**, 0 unhandled errors |
+| Vitest | **250/250**, 0 unhandled errors |
 | Build | clean — 12 pages + /search-index.json |
 | CSP sync (`generate-csp.mjs --check`) | in sync (8 script / 15 style hashes) |
 | Performance budgets (`budgets.mjs`) | all routes within TAD §14.1 |
@@ -72,7 +74,7 @@ Methodology notes (apply to all entries):
 
 **Remaining manual / deploy-dependent items:** RELEASE_CHECKLIST (CSP report-only verification on first preview, rollback rehearsal, live form submission, Lighthouse/CWV, real-viewport matrix, panel theme-lock, VoiceOver, contrast spot-check, T-D7 projector dry-run).
 
-**Overall test status:** ✅ PASS — 233/233 automated, zero unhandled errors, every quality gate green, all TAD §14.1 budgets met, zero axe violations across the built site in both themes.
+**Overall test status:** ✅ PASS — 250/250 automated, zero unhandled errors, every quality gate green, all TAD §14.1 budgets met, zero axe violations across the built site in both themes, TAD §17.2/§17.3 metadata + structured data verified on the built output.
 
 ---
 

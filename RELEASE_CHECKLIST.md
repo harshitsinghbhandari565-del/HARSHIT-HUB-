@@ -22,6 +22,9 @@ Tracks everything required before the project can be merged to `main` and deploy
 | 404 / 500 recovery pages | ✅ | Phase 6 | 2026-08-05 |
 | Chrome survives client-side navigation | ✅ | Phase 7 audit fix — delegation + swap re-sync + entrance rerun (D-044); regression-tested | 2026-08-05 |
 | Route-change focus + title announcement | ✅ | TAD §15.4 implemented + tested (D-044) | 2026-08-05 |
+| SEO metadata (canonical/OG/Twitter, TAD §17.2) | ✅ | SeoHead on every page; integration-verified on built output (D-047) | 2026-08-05 |
+| JSON-LD structured data (TAD §17.3) | ✅ | All five page-type schemas; valid + drift-checked in CI (D-047) | 2026-08-05 |
+| og:image / summary_large_image card | ⬜ | Needs the brand image asset (IA-2 / TD-8 family); card downgrades to `summary` until then | — |
 | Projector dry-run (T-D7, M3) | ⬜ | Needs real Slides/Dropbox URLs + physical panel | — |
 
 ## Accessibility
