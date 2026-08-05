@@ -1,15 +1,16 @@
 /**
- * Phase C islands — interactive tests: MobileMenu (Gate 2: keyboard +
- * pointer, focus trap, aria-expanded) and ThemeToggle (persistence,
- * pressed state). Rendered with Preact into jsdom (D-018 pattern).
+ * Phase C chrome — interactive tests: MobileMenu island (Gate 2:
+ * keyboard + pointer, focus trap, aria-expanded; D-018 pattern) and
+ * ThemeToggle vanilla script (D-038: container render + script eval).
  */
 import { JSDOM } from 'jsdom';
 import { render as preactRender } from 'preact';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import MobileMenu from '../../../src/shared/components/MobileMenu';
-import ThemeToggle from '../../../src/features/theme/islands/ThemeToggle';
-import { THEME_STORAGE_KEY } from '../../../src/features/theme/lib/theme';
+import ThemeToggle from '../../../src/features/theme/islands/ThemeToggle.astro';
+import { initThemeToggle, THEME_STORAGE_KEY } from '../../../src/features/theme/lib/theme';
+import { render as containerRender } from '../helpers/render';
 
 const LINKS = [
   { label: 'Presentations', href: '/presentations' },
@@ -182,20 +183,19 @@ describe('MobileMenu island', () => {
   });
 });
 
-describe('ThemeToggle island', () => {
-  function query() {
-    const button = dom.window.document.querySelector('[data-theme-toggle]') as HTMLButtonElement;
-    return { button };
+describe('ThemeToggle (vanilla script, D-038)', () => {
+  async function mount(): Promise<HTMLButtonElement> {
+    const html = await containerRender(ThemeToggle);
+    host.innerHTML = html.replace(/<script[\s\S]*?<\/script>/, '');
+    initThemeToggle(dom.window.document);
+    return host.querySelector('[data-theme-toggle]') as HTMLButtonElement;
   }
 
   it('starts in light mode and switches to dark on click', async () => {
-    preactRender(<ThemeToggle />, host);
-    await flush();
-    const { button } = query();
+    const button = await mount();
     expect(button.getAttribute('aria-pressed')).toBe('false');
     expect(button.getAttribute('aria-label')).toBe('Switch to dark theme');
     button.click();
-    await flush();
     expect(dom.window.document.documentElement.dataset.theme).toBe('dark');
     expect(dom.window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
     expect(button.getAttribute('aria-pressed')).toBe('true');
@@ -203,22 +203,16 @@ describe('ThemeToggle island', () => {
   });
 
   it('switches back to light on a second click', async () => {
-    preactRender(<ThemeToggle />, host);
-    await flush();
-    const { button } = query();
+    const button = await mount();
     button.click();
-    await flush();
     button.click();
-    await flush();
     expect(dom.window.document.documentElement.dataset.theme).toBe('light');
     expect(dom.window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
   });
 
-  it('reflects a dark document state set before hydration', async () => {
+  it('reflects a dark document state set before the script runs', async () => {
     dom.window.document.documentElement.dataset.theme = 'dark';
-    preactRender(<ThemeToggle />, host);
-    await flush();
-    const { button } = query();
+    const button = await mount();
     expect(button.getAttribute('aria-pressed')).toBe('true');
     expect(button.getAttribute('aria-label')).toBe('Switch to light theme');
   });
