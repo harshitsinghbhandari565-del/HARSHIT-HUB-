@@ -13,6 +13,7 @@ import { getCollection, render } from 'astro:content';
 
 import Breadcrumb from '../shared/ui/Breadcrumb.astro';
 import BaseLayout from '../shared/layouts/BaseLayout.astro';
+import { webPageSchema } from '../shared/lib/jsonLd';
 
 const aboutEntries = await getCollection('about');
 const entry = aboutEntries[0];
@@ -24,6 +25,7 @@ const { Content } = entry ? await render(entry) : { Content: null };
   title="About"
   description="About Harshit — student, presenter, and builder."
   activePath="/about"
+  jsonLd={[webPageSchema('AboutPage', 'About', '/about/', 'About Harshit — student, presenter, and builder.')]}
 >
   <main id="main-content">
     <div class="container about">

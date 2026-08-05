@@ -20,6 +20,7 @@ import AboutTeaser from '../shared/components/AboutTeaser.astro';
 import ContactTeaser from '../shared/components/ContactTeaser.astro';
 import Hero from '../shared/components/Hero.astro';
 import BaseLayout from '../shared/layouts/BaseLayout.astro';
+import { personSchema, websiteSchema } from '../shared/lib/jsonLd';
 
 const published = await getCollection('presentations', ({ data }) => data.published);
 
@@ -42,6 +43,7 @@ const rail = sortPresentations(
   title="Home"
   description="Harshit's academic portfolio and presentation hub — every talk one click from full-screen."
   activePath="/"
+  jsonLd={[personSchema(), websiteSchema()]}
 >
   <Fragment slot="head">
     <!-- data-astro-rerun (D-044): the router skips scripts whose content

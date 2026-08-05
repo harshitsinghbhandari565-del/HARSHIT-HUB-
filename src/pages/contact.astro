@@ -12,6 +12,7 @@
 import ContactForm from '../features/contact/islands/ContactForm';
 import Breadcrumb from '../shared/ui/Breadcrumb.astro';
 import BaseLayout from '../shared/layouts/BaseLayout.astro';
+import { webPageSchema } from '../shared/lib/jsonLd';
 import { SITE_EMAIL } from '../shared/config/site';
 ---
 
@@ -19,6 +20,7 @@ import { SITE_EMAIL } from '../shared/config/site';
   title="Contact"
   description="Get in touch with Harshit — email or send a message."
   activePath="/contact"
+  jsonLd={[webPageSchema('ContactPage', 'Contact', '/contact/', 'Get in touch with Harshit — email or send a message.')]}
 >
   <main id="main-content">
     <div class="container contact">

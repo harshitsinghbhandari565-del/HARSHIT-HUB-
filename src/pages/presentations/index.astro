@@ -12,6 +12,7 @@ import GalleryController from '../../features/presentations/islands/GalleryContr
 import PresentationCard from '../../features/presentations/components/PresentationCard.astro';
 import { DEFAULT_SORT, sortPresentations } from '../../features/presentations/lib/sorting';
 import BaseLayout from '../../shared/layouts/BaseLayout.astro';
+import { collectionSchema } from '../../shared/lib/jsonLd';
 
 const published = await getCollection('presentations', ({ data }) => data.published);
 
@@ -35,6 +36,16 @@ const count = presentations.length;
   title="Presentations"
   description="All of Harshit's academic presentations — searchable, sortable, and one click from full-screen."
   activePath="/presentations"
+  jsonLd={[
+    collectionSchema(
+      presentations.map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        subject: p.subject,
+        dateISO: p.date.toISOString(),
+      })),
+    ),
+  ]}
 >
   <main id="main-content">
     <div class="container gallery">

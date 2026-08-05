@@ -21,6 +21,7 @@ import {
 import Alert from '../../shared/ui/Alert.astro';
 import Breadcrumb from '../../shared/ui/Breadcrumb.astro';
 import BaseLayout from '../../shared/layouts/BaseLayout.astro';
+import { breadcrumbSchema, presentationSchema } from '../../shared/lib/jsonLd';
 
 export async function getStaticPaths() {
   const presentations = await getCollection('presentations', ({ data }) => data.published);
@@ -42,7 +43,25 @@ const description =
   data.description ?? `${data.subject} presentation by Harshit — ${data.tags.join(', ')}.`;
 ---
 
-<BaseLayout title={data.title} description={description} activePath="/presentations">
+<BaseLayout
+  title={data.title}
+  description={description}
+  activePath="/presentations"
+  jsonLd={[
+    presentationSchema({
+      slug: presentation.id,
+      title: data.title,
+      subject: data.subject,
+      dateISO: data.date.toISOString(),
+      description: data.description,
+    }),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Presentations', path: '/presentations/' },
+      { name: data.title, path: `/presentations/${presentation.id}/` },
+    ]),
+  ]}
+>
   <main id="main-content">
     <div class="container detail">
       <nav class="detail__back-row">

@@ -16,8 +16,9 @@ import { ClientRouter } from 'astro:transitions';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import MobileMenu from '../components/MobileMenu.astro';
+import SeoHead from '../components/SeoHead.astro';
 import SkipLink from '../ui/SkipLink.astro';
-import { NAV_LINKS, SITE_NAME } from '../config/site';
+import { NAV_LINKS } from '../config/site';
 import SearchOverlay from '../../features/search/islands/SearchOverlay.astro';
 import { ThemeToggle } from '../../features/theme';
 import '../styles/tokens.css';
@@ -34,9 +35,13 @@ interface Props {
   activePath?: string;
   /** Keep a page out of search indexes (TAD §6.4: Coming Soon pages). */
   noindex?: boolean;
+  /** Share-card image (site-relative) once a brand asset exists. */
+  image?: string;
+  /** Page-specific JSON-LD schemas (TAD §17.3; builders in lib/jsonLd). */
+  jsonLd?: ReadonlyArray<Record<string, unknown>>;
 }
 
-const { title, description, activePath = '/', noindex = false } = Astro.props;
+const { title, description, activePath = '/', noindex = false, image, jsonLd } = Astro.props;
 ---
 
 <!doctype html>
@@ -50,10 +55,9 @@ const { title, description, activePath = '/', noindex = false } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · {SITE_NAME}</title>
-    {description && <meta name="description" content={description} />}
+    <!-- Metadata architecture (TAD §17.2) + JSON-LD emission (§17.3). -->
+    <SeoHead title={title} description={description} noindex={noindex} image={image} jsonLd={jsonLd} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    {noindex && <meta name="robots" content="noindex, follow" />}
     <!--
       TAD §14.5 — Astro Fonts API injection point. Each <Font /> emits the
       @font-face rules, the optimized family stack (cssVariable), and preload

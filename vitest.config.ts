@@ -9,7 +9,11 @@ import { getViteConfig } from 'astro/config';
 export default getViteConfig({
   test: {
     environment: 'node',
-    include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/a11y/**/*.test.{ts,tsx}'],
+    include: [
+      'tests/unit/**/*.test.{ts,tsx}',
+      'tests/a11y/**/*.test.{ts,tsx}',
+      'tests/integration/**/*.test.{ts,tsx}',
+    ],
     // CI stays green during phases where no unit tests exist yet.
     passWithNoTests: true,
   },
