@@ -4,7 +4,7 @@ Tracks everything required before the project can be merged to `main` and deploy
 
 **Legend:** ⬜ Not started · 🟡 In progress · ✅ Done · ⛔ Blocked / N/A
 
-**Branch:** `arena/019fcc8f-harshit-hub` · **Protected:** `main` · **Last updated:** 2026-08-05 (Phase 7)
+**Branch:** `arena/019fcc8f-harshit-hub` · **Protected:** `main` · **Last updated:** 2026-08-06 (Netlify deployment complete; catalog real-only)
 
 ---
 
@@ -83,8 +83,9 @@ Every remaining placeholder in the codebase (Phase 7 content audit — recorded,
 
 | Placeholder | Location | Replacement |
 |---|---|---|
-| ⬜ Remaining 2 mock presentations (titles, Slides/Dropbox URLs, descriptions) | `src/content/presentations/{photosynthesis,french-revolution}.json` | Harshit's real decks (IA-2) — see docs/ADDING-A-PRESENTATION.md |
+| ✅ All mock presentations removed — published catalog is real-only | 2026-08-06: `photosynthesis` + `french-revolution` mocks deleted; no unpublished mocks retained | See docs/ADDING-A-PRESENTATION.md for adding more decks |
 | ✅ Real presentation #1 — "Indigo (Chapter 5)" | `src/content/presentations/indigo-chapter-5.json` (replaced the `poetry-of-the-romantics` mock, 2026-08-06) | Slides + Dropbox links verified live |
+| ✅ Real presentation #2 — "A Thing of Beauty" | `src/content/presentations/a-thing-of-beauty.json` (replaced the `photosynthesis` mock, 2026-08-06) | Slides + Dropbox links verified live |
 | ⬜ Mock tagline | `SITE_TAGLINE` in `src/shared/config/site.ts` | Real tagline (IA-2) |
 | ⬜ Mock About teaser | `SITE_ABOUT_TEASER` in `src/shared/config/site.ts` | Real copy (IA-2) |
 | ⬜ Mock Contact teaser | `SITE_CONTACT_TEASER` in `src/shared/config/site.ts` | Real copy (IA-2) |
@@ -99,16 +100,17 @@ Every remaining placeholder in the codebase (Phase 7 content audit — recorded,
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| Present flow on physical projector (T-D7) | ⬜ | Blocked on content + panel | — |
+| Present flow on physical classroom panel (T-D7) | 🟡 | Content ready (both real decks live-verified); classroom interactive panel test **pending** | — |
+| Mobile + laptop verification | ✅ | Passed on the deployed Netlify site | 2026-08-06 |
 | Contact form live submission (Netlify) | ⬜ | Requires deployed Netlify site | — |
 | No-JS verification (all pages) | ⬜ | Disable JS in browser; static nav + forms must work (I1) | — |
-| Client-side navigation smoke (chrome keeps working) | 🟡 | Automated regression tests PASS; confirm visually on deploy preview | — |
+| Client-side navigation smoke (chrome keeps working) | ✅ | Automated regression tests PASS + covered by mobile/laptop verification on the deployed site | 2026-08-06 |
 
 ## Deployment
 
 | Item | Status | Notes | Date |
 |---|---|---|---|
-| Netlify site + custom domain | ⬜ | Subdomain default (B7); RUNBOOK §10 | — |
+| Netlify site + custom domain | ✅ | **Deployed successfully** (Netlify subdomain, B7) | 2026-08-06 |
 | CI workflow live (GitHub Actions) | ⛔ | Commits held locally — GitHub App lacks `workflows` permission (since Phase 3) | — |
 | Netlify Forms enabled | ⬜ | Verify on first deploy | — |
 | Rollback rehearsed | ⬜ | RUNBOOK §3 rehearsal script | — |

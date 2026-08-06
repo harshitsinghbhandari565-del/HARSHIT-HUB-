@@ -11,6 +11,20 @@ Methodology notes (apply to all entries):
 
 ---
 
+## Content Replacement — catalog is now real-only: "A Thing of Beauty" added, all mocks removed
+
+**Date:** 2026-08-06 (content-only change; no application/UI/architecture/styling/config changes)
+
+- **Replaced:** the `photosynthesis` mock with `src/content/presentations/a-thing-of-beauty.json` (subject English, 8 tags, published). Slides URL stored in the schema-required `/present` form (deck id `1YFBlj3TwQzcyTeqqGMMtNyD1kfaDCSNW`); Dropbox backup keeps `rlkey`/`st` params with `dl=0` preview (ADR-0012); description plain-text (368/500 chars; Markdown emphasis markers removed). No display-title/thumbnail fields exist in the schema — subject-visual fallback renders unchanged.
+- **Removed:** the remaining `french-revolution` mock — **no published or unpublished mock content remains**; the published catalog contains only real presentations (Indigo (Chapter 5), A Thing of Beauty).
+- **Validation:** Zod content contract passed at build (invariant I5); rebuild clean (11 pages).
+- **Verification:** gallery shows exactly the two real cards (subject filter now derives `English` only); detail page h1/description/Present/Backup correct; search index has exactly 2 entries; matcher semantics unchanged (title/subject/tag exact+prefix, AND across tokens); sorting stable under the date tie (both decks 2026-08-06 — collection order); sitemap has 6 URLs with mocks gone; canonical/OG/Twitter/JSON-LD re-verified on the built output (CollectionPage ItemList, PresentationDigitalDocument + BreadcrumbList, escape-safe). Four content-coupled SEO integration assertions updated to the real catalog (permitted content-dependent test updates).
+- **External links:** Slides `/present` verified live (15-slide A Thing of Beauty deck, exact content match); Dropbox preview verified live (A_Thing_of_Beauty_Class12_CBSE_Final_v2.pptx, shared by the owner).
+- **Deployment record:** **Netlify deployment completed successfully (2026-08-06). Mobile and laptop verification passed. The classroom interactive panel test (T-D7) is pending.**
+- **Gates after the change:** 248/248 tests (22 site-wide axe scans over 11 pages × both themes + 11 SEO integration checks) · typecheck 0/0/0 · ESLint 0 · Stylelint 0 · budgets OK · CSP regenerated + in sync · robots/link-check/audit OK.
+
+---
+
 ## Content Update — first real presentation: "Indigo (Chapter 5)"
 
 **Date:** 2026-08-06 (content-only change; no architecture/UI/design changes)

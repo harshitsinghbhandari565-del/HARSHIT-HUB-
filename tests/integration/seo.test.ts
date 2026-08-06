@@ -32,7 +32,7 @@ describe.skipIf(!existsSync(DIST))('SEO metadata architecture (TAD §17.2)', () 
   const indexable: Array<[string, string]> = [
     ['index.html', `${SITE}/`],
     ['presentations/index.html', `${SITE}/presentations/`],
-    ['presentations/photosynthesis/index.html', `${SITE}/presentations/photosynthesis/`],
+    ['presentations/a-thing-of-beauty/index.html', `${SITE}/presentations/a-thing-of-beauty/`],
     ['about/index.html', `${SITE}/about/`],
     ['contact/index.html', `${SITE}/contact/`],
   ];
@@ -74,19 +74,21 @@ describe.skipIf(!existsSync(DIST))('JSON-LD structured data (TAD §17.3)', () =>
     expect(list['@type']).toBe('ItemList');
     const items = list.itemListElement as Array<Record<string, unknown>>;
     expect(items.length).toBeGreaterThan(0);
-    // ItemList follows the gallery's default date-desc order: newest first.
-    expect(items[0].name).toBe('Indigo (Chapter 5)');
+    // ItemList follows the gallery's default date-desc order; both real
+    // decks share 2026-08-06, so the tie keeps collection order.
+    expect(items[0].name).toBe('A Thing of Beauty');
+    expect(items.map((i) => i.name)).toContain('Indigo (Chapter 5)');
   });
 
   it('detail emits PresentationDigitalDocument + matching BreadcrumbList', () => {
-    const blocks = jsonLdBlocks(page('presentations/photosynthesis/index.html'));
+    const blocks = jsonLdBlocks(page('presentations/a-thing-of-beauty/index.html'));
     const types = blocks.map((b) => b['@type']);
     expect(types).toEqual(['PresentationDigitalDocument', 'BreadcrumbList']);
     const doc = blocks[0];
-    expect(doc.name).toBe('Photosynthesis: How Plants Make Food');
-    expect(doc.genre).toBe('Science');
+    expect(doc.name).toBe('A Thing of Beauty');
+    expect(doc.genre).toBe('English');
     const crumbs = (blocks[1].itemListElement as Array<Record<string, unknown>>).map((c) => c.name);
-    expect(crumbs).toEqual(['Home', 'Presentations', 'Photosynthesis: How Plants Make Food']);
+    expect(crumbs).toEqual(['Home', 'Presentations', 'A Thing of Beauty']);
   });
 
   it('about/contact emit their page types', () => {
@@ -95,7 +97,7 @@ describe.skipIf(!existsSync(DIST))('JSON-LD structured data (TAD §17.3)', () =>
   });
 
   it('no JSON-LD body contains a literal "<" (D-047 escape)', () => {
-    for (const rel of ['index.html', 'presentations/index.html', 'presentations/photosynthesis/index.html', 'about/index.html', 'contact/index.html']) {
+    for (const rel of ['index.html', 'presentations/index.html', 'presentations/a-thing-of-beauty/index.html', 'about/index.html', 'contact/index.html']) {
       for (const m of page(rel).matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
         expect(m[1], `${rel} JSON-LD must be escape-safe`).not.toContain('<');
       }
