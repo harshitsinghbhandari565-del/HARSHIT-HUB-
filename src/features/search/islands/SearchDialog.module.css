@@ -1,0 +1,165 @@
+/* SearchDialog — backdrop, dialog panel, results (TAD §11.4). */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-16) var(--space-4) var(--space-4);
+  background-color: var(--scrim);
+}
+
+.panel {
+  width: min(640px, 100%);
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-neutral-600);
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.close:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.25em; /* reserve space — no layout shift on announcements */
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+}
+
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.result {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.result:hover {
+  background-color: var(--color-neutral-100);
+}
+
+.result:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.resultTitle {
+  color: var(--color-neutral-900);
+  font-weight: 600;
+  font-size: var(--text-body);
+}
+
+.resultMeta {
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+}
+
+.empty {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.emptyHeading {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-4);
+  font-weight: 600;
+  color: var(--color-neutral-600); /* Design §18.3 (v2 correction) */
+}
+
+.emptyBody {
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+}
+
+.emptyAction {
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-primary-500);
+  font-weight: 500;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.emptyAction:hover {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.prompt {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--color-neutral-600);
+  font-size: var(--text-body-sm);
+}
+
+/* Mobile: full-width top sheet. */
+@media (width <= 767px) {
+  .backdrop {
+    padding: var(--space-4);
+  }
+
+  .panel {
+    max-height: 80vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .close,
+  .result,
+  .emptyAction {
+    transition: none;
+  }
+}

@@ -1,0 +1,64 @@
+---
+/**
+ * SearchOverlay — global header search trigger (Dev Plan T-F3,
+ * TAD §11.3). A plain button with a tiny bundled script (D-038): the
+ * first click dynamically imports Preact + SearchDialog via search-mount,
+ * so search JS never taxes page loads where nobody searches (TAD §14.1).
+ *
+ * The dialog itself (SearchDialog) carries the full TAD §11.4
+ * accessibility contract: dialog semantics, focus trap, arrow roving,
+ * Escape close, polite announcements, focus return to this trigger.
+ */
+---
+
+<button
+  type="button"
+  class="search-trigger"
+  data-search-trigger
+  aria-label="Search presentations"
+  aria-expanded="false"
+  aria-controls="search-overlay-panel"
+>
+  <svg class="search-trigger__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <path d="m21 21l-4.3-4.3"></path>
+  </svg>
+</button>
+
+<script>
+  import { initSearchTrigger } from '../lib/search-trigger';
+  initSearchTrigger(document);
+</script>
+
+<style>
+  .search-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--color-neutral-600);
+    background-color: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .search-trigger:hover {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+
+  .search-trigger__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .search-trigger {
+      transition: none;
+    }
+  }
+</style>

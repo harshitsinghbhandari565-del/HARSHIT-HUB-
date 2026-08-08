@@ -1,0 +1,76 @@
+---
+/**
+ * EmptyState — friendly nothing-here surface with a next action
+ * (Design §18). Icon is decorative; heading + body carry the meaning.
+ *
+ * Used by: empty gallery (§18.1), empty search results (§18.3),
+ * Coming Soon pages (§18.4 — Phase G composes these).
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  icon: string;
+  title: string;
+  message: string;
+  action?: { label: string; href: string };
+}
+
+const { icon, title, message, action } = Astro.props;
+---
+
+<div class="empty-state">
+  <Icon name={icon} class="empty-state__icon" aria-hidden="true" />
+  <h2 class="empty-state__title">{title}</h2>
+  <p class="empty-state__message">{message}</p>
+  {
+    action && (
+      <a class="empty-state__action" href={action.href}>
+        {action.label}
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+  }
+
+  .empty-state__icon {
+    width: 48px; /* Design §18 */
+    height: 48px;
+    color: var(--color-neutral-300);
+  }
+
+  .empty-state__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-4);
+    font-weight: 600;
+    color: var(--color-neutral-600); /* ★ v2 correction — was neutral-400 in v1 */
+  }
+
+  .empty-state__message {
+    max-width: 40ch;
+    font-size: var(--text-body-sm);
+    color: var(--color-neutral-600);
+  }
+
+  .empty-state__action {
+    margin-top: var(--space-1);
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-primary-500);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+
+  .empty-state__action:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
+  }
+</style>

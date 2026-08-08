@@ -1,0 +1,35 @@
+---
+/**
+ * Footer — signature footer (Dev Plan T-C5, Design §11.11).
+ * Text uses neutral-600 (v2 correction — was neutral-500 in v1).
+ */
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <p class="footer__text">© {year} Harshit</p>
+    <p class="footer__text">Built with care</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: var(--space-10);
+    background-color: var(--color-neutral-50);
+    border-top: 1px solid var(--color-neutral-200);
+  }
+
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .footer__text {
+    font-size: var(--text-body-sm);
+    color: var(--color-neutral-600);
+  }
+</style>

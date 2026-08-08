@@ -1,0 +1,136 @@
+---
+/**
+ * BaseLayout — TAD §7.3 / Dev Plan T-A6 (chrome completed in Phase C).
+ *
+ * The standard HTML shell: <html>/<head>, tokens, global styles, the
+ * blocking theme FOUC-guard script, View Transitions routing, and the
+ * global chrome — SkipLink, Header (with ThemeToggle + MobileMenu passed
+ * through its actions slot), and Footer. Pages are thin compositions on
+ * top of this shell.
+ */
+// Astro 6 exports ClientRouter from astro:transitions (the /client module
+// now carries router utilities only). See DECISIONS.md D-002.
+import { Font } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
+
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import MobileMenu from '../components/MobileMenu.astro';
+import SeoHead from '../components/SeoHead.astro';
+import SkipLink from '../ui/SkipLink.astro';
+import { NAV_LINKS } from '../config/site';
+import SearchOverlay from '../../features/search/islands/SearchOverlay.astro';
+import { ThemeToggle } from '../../features/theme';
+import '../styles/tokens.css';
+import '../styles/tokens.dark.css';
+import '../styles/global.css';
+import '../styles/utilities.css';
+
+interface Props {
+  /** Page title — rendered as "{title} · {SITE_NAME}" (TAD §17.2). */
+  title: string;
+  /** Meta description; required on indexable pages once content lands. */
+  description?: string;
+  /** Current route for nav active states (Design §10.2). */
+  activePath?: string;
+  /** Keep a page out of search indexes (TAD §6.4: Coming Soon pages). */
+  noindex?: boolean;
+  /** Share-card image (site-relative) once a brand asset exists. */
+  image?: string;
+  /** Page-specific JSON-LD schemas (TAD §17.3; builders in lib/jsonLd). */
+  jsonLd?: ReadonlyArray<Record<string, unknown>>;
+}
+
+const { title, description, activePath = '/', noindex = false, image, jsonLd } = Astro.props;
+---
+
+<!doctype html>
+<!--
+  data-theme defaults to light. The FOUC-guard script below sets it to
+  "dark" before first paint ONLY when the stored preference says so AND
+  the device is not a classroom panel (ADR-0011) — any failure yields
+  light, the classroom-safe state (TAD §12.2).
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Metadata architecture (TAD §17.2) + JSON-LD emission (§17.3). -->
+    <SeoHead title={title} description={description} noindex={noindex} image={image} jsonLd={jsonLd} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      TAD §14.5 — Astro Fonts API injection point. Each <Font /> emits the
+      @font-face rules, the optimized family stack (cssVariable), and preload
+      hints. Only first-paint weights preload (body 400, hero display 800) —
+      remaining weights load on demand without contention.
+    -->
+    <Font cssVariable="--font-inter-stack" preload={[{ weight: 400, style: 'normal' }]} />
+    <Font
+      cssVariable="--font-plus-jakarta-sans-stack"
+      preload={[{ weight: 800, style: 'normal' }]}
+    />
+    <script is:inline>
+      // FOUC prevention (TAD §12.2) + panel theme lock (ADR-0011).
+      // The `js` class enables progressive-enhancement CSS (no-JS users
+      // keep the static nav and never see inert toggles). Synchronous and
+      // inline; hash-allowlisted in the CSP once enforcement lands (Phase H).
+      document.documentElement.classList.add('js');
+      try {
+        const t = localStorage.getItem('theme');
+        const panel = matchMedia('(min-width:1920px) and ((pointer:coarse) or (hover:none))');
+        if (t === 'dark' && !panel.matches) document.documentElement.dataset.theme = 'dark';
+      } catch {
+        // Any failure yields light mode — the classroom-safe default.
+      }
+    </script>
+    <!-- TAD §6.5: View Transitions over real navigations (no client router). -->
+    <ClientRouter fallback="swap" />
+    <script>
+      import { initNavA11y } from '../lib/navA11y';
+      initNavA11y(document);
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <!-- First focusable element — WCAG 2.4.1 (Design §25.2). -->
+    <SkipLink />
+    <Header currentPage={activePath}>
+      <Fragment slot="actions">
+        <!-- Vanilla-script components (D-038/D-044): no hydration directives. -->
+        <SearchOverlay />
+        <ThemeToggle />
+        <MobileMenu links={NAV_LINKS} currentPage={activePath} />
+      </Fragment>
+    </Header>
+    <slot />
+    <Footer />
+  </body>
+</html>
+
+<style is:global>
+  /* ── Font token wiring (TAD §14.5) ──
+   * tokens.css stays verbatim (Design §26.1). The Astro Fonts API generates
+   * optimized family stacks (self-hosted files, latin subset, metric-adjusted
+   * fallbacks) as CSS variables; we re-point the design tokens at them here.
+   * The inline fallbacks keep rendering correct if the font stack is absent.
+   * This block lives in a component style (not global.css) because the Astro
+   * compiler collects font usage from component styles only. */
+  :root {
+    --font-body: var(--font-inter-stack, 'Inter', system-ui, -apple-system, sans-serif);
+    --font-display: var(
+      --font-plus-jakarta-sans-stack,
+      'Plus Jakarta Sans',
+      system-ui,
+      -apple-system,
+      sans-serif
+    );
+
+    /* ── Chrome tokens (Phase C) ──
+     * Derived from palette tokens so dark mode adapts automatically.
+     * --header-bg: the frosted-glass translucency (Design §11.5's
+     * rgba white 85%) expressed token-based. */
+    --header-bg: color-mix(in srgb, var(--color-white) 85%, transparent);
+    /* Overlay scrim — adapts automatically in dark mode (neutral-900 flips). */
+    --scrim: color-mix(in srgb, var(--color-neutral-900) 45%, transparent);
+  }
+</style>

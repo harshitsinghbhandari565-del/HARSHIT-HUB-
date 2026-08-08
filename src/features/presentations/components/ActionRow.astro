@@ -1,0 +1,79 @@
+---
+/**
+ * ActionRow — projector-optimized launch pad (Dev Plan T-D6).
+ *
+ * The Present action is a REAL anchor opening Google Slides /present mode
+ * in a new tab (TAD §24.5): it works before hydration, with JavaScript
+ * disabled, and with a middle-click — the floor of the layered failure
+ * model (TAD §16.4). rel="noopener noreferrer" guards against
+ * reverse-tabnabbing. The subtitle stays inside the anchor so it joins
+ * the accessible name.
+ *
+ * Composed from the shared Button primitive (D-027) — the rendered markup
+ * honours the TAD §24.5 contract exactly.
+ *
+ * Failure states (TAD §16.3 / Design §20.3): when the build-time link
+ * health check marks Slides unreachable, Present renders as a disabled
+ * button and the backup is promoted to primary. Dropbox absence is not an
+ * error — the button simply does not render.
+ */
+import Button from '../../../shared/ui/Button.astro';
+
+interface Props {
+  presentUrl: string;
+  backupUrl?: string;
+  /** linkHealth.slides === 'unreachable' (build-time data, ADR-0006). */
+  slidesDown?: boolean;
+}
+
+const { presentUrl, backupUrl, slidesDown = false } = Astro.props;
+---
+
+<div class:list={['action-row', { 'action-row--down': slidesDown }]}>
+  {
+    slidesDown ? (
+      <Button
+        label="Present"
+        subtitle="Opens in Google Slides"
+        icon="lucide:play"
+        variant="primary"
+        disabled
+      />
+    ) : (
+      <Button
+        label="Present"
+        subtitle="Opens in Google Slides"
+        icon="lucide:play"
+        variant="primary"
+        href={presentUrl}
+        external
+      />
+    )
+  }
+  {
+    backupUrl && (
+      <Button
+        label="Open Backup (Dropbox)"
+        icon="lucide:external-link"
+        variant={slidesDown ? 'primary' : 'secondary'}
+        href={backupUrl}
+        external
+      />
+    )
+  }
+</div>
+
+<style>
+  .action-row {
+    display: flex;
+    flex-direction: column; /* mobile: stacked, Present first (Design §11.8) */
+    gap: var(--space-3);
+  }
+
+  @media (width >= 768px) {
+    .action-row {
+      flex-direction: row; /* desktop: side-by-side, Present left */
+      align-items: center;
+    }
+  }
+</style>

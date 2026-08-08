@@ -1,0 +1,96 @@
+---
+/**
+ * ThemeToggle (Dev Plan T-C4) — opt-in dark/light switch.
+ *
+ * Implemented as a vanilla bundled script instead of a Preact island
+ * (D-038): the toggle is a 3-line state flip, and keeping it island-free
+ * means pages without real islands (detail, about, contact) never load
+ * the Preact runtime — the difference between ~7 KB and ~17 KB on those
+ * routes (TAD §14.1 budgets). Behaviour is unchanged from the Phase 2
+ * island: flips data-theme, persists via the theme lib, updates
+ * aria-pressed/label; hidden on panels where light is forced (ADR-0011).
+ *
+ * The wiring logic lives in lib/theme.ts (initThemeToggle) so it is
+ * unit-testable without script eval (D-038); the FOUC guard and the
+ * recency system share that same lib.
+ */
+---
+
+<button
+  type="button"
+  class="theme-toggle"
+  data-theme-toggle
+  aria-pressed="false"
+  aria-label="Switch to dark theme"
+>
+  <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
+  </svg>
+  <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+  </svg>
+</button>
+
+<script>
+  import { initThemeToggle } from '../lib/theme';
+  initThemeToggle(document);
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--color-neutral-600);
+    background-color: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .theme-toggle:hover {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+
+  .theme-toggle__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Dark stored/applied → show the sun ("switch to light"). */
+  .theme-toggle__icon--sun {
+    display: none;
+  }
+
+  .theme-toggle[data-dark] .theme-toggle__icon--sun {
+    display: block;
+  }
+
+  .theme-toggle[data-dark] .theme-toggle__icon--moon {
+    display: none;
+  }
+
+  /* Panels force light and hide the toggle (Design §17.1, ADR-0011). */
+  @media (width >= 1920px) and ((pointer: coarse) or (hover: none)) {
+    .theme-toggle {
+      display: none;
+    }
+  }
+
+  /* Without JS the control cannot work — hide it (light default stands). */
+  :global(html:not(.js)) .theme-toggle {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle {
+      transition: none;
+    }
+  }
+</style>

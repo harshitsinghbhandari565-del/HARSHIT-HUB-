@@ -1,0 +1,66 @@
+---
+/**
+ * SeoHead — metadata architecture (TAD §17.2) + structured data
+ * emission point (TAD §17.3). BaseLayout renders this for every page,
+ * so a page cannot ship without declaring its metadata.
+ *
+ * - title/description/robots: per-route, never duplicated by design
+ * - canonical + og:url: absolute, clean path (query strings stripped —
+ *   pathname never carries them)
+ * - Open Graph + Twitter Card: server-rendered because social crawlers
+ *   do not execute JavaScript (TAD §17.2)
+ * - og:image / twitter:image: emitted only when a brand image prop is
+ *   provided — none exists yet (IA-2 / TD-8 family); the card type
+ *   downgrades to "summary" until then
+ * - JSON-LD: build-time serialized from the same content that renders
+ *   the page (builders in lib/jsonLd.ts)
+ */
+import { SITE_NAME } from '../config/site';
+import { serializeJsonLd } from '../lib/jsonLd';
+
+interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+  /** Site-relative image for share cards once a brand asset exists. */
+  image?: string;
+  jsonLd?: ReadonlyArray<Record<string, unknown>>;
+}
+
+const { title, description, noindex = false, image, jsonLd } = Astro.props as Props;
+
+const fullTitle = `${title} · ${SITE_NAME}`;
+// import.meta.env.SITE is the supported source for the canonical site URL
+// (Astro.site is deprecated for this use); it also resolves under the
+// Container API in tests, where Astro.site is unavailable.
+const site = import.meta.env.SITE;
+const canonical = new URL(Astro.url.pathname, site);
+const imageUrl = image ? new URL(image, site) : null;
+---
+
+<title>{fullTitle}</title>
+{description && <meta name="description" content={description} />}
+<meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
+<link rel="canonical" href={canonical} />
+
+<meta property="og:title" content={fullTitle} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={SITE_NAME} />
+{imageUrl && <meta property="og:image" content={imageUrl} />}
+
+<meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+{imageUrl && <meta name="twitter:image" content={imageUrl} />}
+
+{
+  // JSON-LD (TAD §17.3). Astro treats <script> bodies as raw text (no
+  // template interpolation), so serialized data must go through set:html.
+  // D-047 documented exception to the TAD §19.2 set:html ban: the payload
+  // is serializeJsonLd() over build-time, Zod-validated content — every
+  // "<" escaped to \u003c, so it can contain no markup and cannot close
+  // the script element early.
+  jsonLd?.map((schema) => (
+    <script type="application/ld+json" is:inline set:html={serializeJsonLd(schema)} />
+  ))
+}

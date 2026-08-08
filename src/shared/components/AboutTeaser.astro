@@ -1,0 +1,74 @@
+---
+/**
+ * AboutTeaser — homepage About section teaser (Dev Plan T-E3,
+ * Design §29.2 AboutTeaserSection): visual + short bio + "Read More"
+ * ghost button to /about.
+ *
+ * The visual is a decorative gradient placeholder until Harshit's
+ * profile image arrives (content pending, IA-2 / D-034); it is
+ * aria-hidden and never the only carrier of meaning. Copy comes from
+ * labelled site-config defaults (D-034).
+ */
+import Button from '../ui/Button.astro';
+import { SITE_ABOUT_TEASER } from '../config/site';
+---
+
+<section class="about-teaser" aria-labelledby="about-teaser-heading">
+  <div class="container about-teaser__inner">
+    <div class="about-teaser__visual" aria-hidden="true"></div>
+    <div class="about-teaser__content">
+      <h2 id="about-teaser-heading" class="about-teaser__heading">About Harshit</h2>
+      <p class="about-teaser__text">{SITE_ABOUT_TEASER}</p>
+      <Button label="Read More" variant="ghost" href="/about" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .about-teaser {
+    padding-block: var(--space-12);
+    background-color: var(--color-neutral-50);
+    border-block: 1px solid var(--color-neutral-200);
+  }
+
+  .about-teaser__inner {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+
+  @media (width >= 768px) {
+    .about-teaser__inner {
+      grid-template-columns: 2fr 3fr; /* Design §24.2: visual left, text right */
+    }
+  }
+
+  .about-teaser__visual {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-100),
+      var(--color-primary-300)
+    );
+  }
+
+  .about-teaser__content {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .about-teaser__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-2);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .about-teaser__text {
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+    max-width: 60ch;
+  }
+</style>

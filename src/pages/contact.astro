@@ -1,0 +1,131 @@
+---
+/**
+ * Contact page (Dev Plan T-G2, PRD §15.7, Design §11.10).
+ *
+ * Contact details (email; socials when provided — PRD OQ-4 assumption)
+ * plus the Netlify-backed message form. The form works without
+ * JavaScript (invariant I1); the ContactForm island (client:visible)
+ * adds inline validation and async submission (TAD §18.4).
+ *
+ * Privacy microcopy is the exact Design §11.10 copy.
+ */
+import ContactForm from '../features/contact/islands/ContactForm';
+import Breadcrumb from '../shared/ui/Breadcrumb.astro';
+import BaseLayout from '../shared/layouts/BaseLayout.astro';
+import { webPageSchema } from '../shared/lib/jsonLd';
+import { SITE_EMAIL } from '../shared/config/site';
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch with Harshit — email or send a message."
+  activePath="/contact"
+  jsonLd={[webPageSchema('ContactPage', 'Contact', '/contact/', 'Get in touch with Harshit — email or send a message.')]}
+>
+  <main id="main-content">
+    <div class="container contact">
+      <Breadcrumb
+        items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]}
+      />
+
+      <div class="contact__inner">
+        <h1 class="contact__title">Get in Touch</h1>
+        <p class="contact__subtitle">
+          Questions, feedback, or a project in mind? Send a message, or reach
+          out by email.
+        </p>
+
+        <div class="contact__details">
+          <a class="contact__email" href={`mailto:${SITE_EMAIL}`}>
+            <svg class="contact__email-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+            </svg>
+            {SITE_EMAIL}
+          </a>
+        </div>
+
+        <div class="contact__form-wrap">
+          <h2 class="contact__form-heading">Send a message</h2>
+          <ContactForm client:visible />
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .contact {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+  }
+
+  .contact__inner {
+    display: grid;
+    gap: var(--space-6);
+    max-width: 560px; /* Design §11.10: centred, max-width 560px */
+  }
+
+  .contact__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-1);
+    font-weight: 700;
+    color: var(--color-neutral-900);
+  }
+
+  .contact__subtitle {
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+  }
+
+  .contact__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .contact__email {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-neutral-800);
+    font-weight: 500;
+    text-decoration: none;
+    border: 1.5px solid var(--color-neutral-300);
+    border-radius: var(--radius-md);
+    transition:
+      border-color var(--duration-fast) var(--ease-default),
+      color var(--duration-fast) var(--ease-default);
+  }
+
+  .contact__email:hover {
+    color: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+  }
+
+  .contact__email-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .contact__form-wrap {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .contact__form-heading {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-3);
+    font-weight: 600;
+    color: var(--color-neutral-900);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact__email {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,83 @@
+---
+/**
+ * Alert — inline status messaging (Design §20.3 / §20.7 styling).
+ *
+ * `error` uses role="alert" (assertive); other variants use role="status"
+ * (polite) so screen readers announce without interrupting. The icon is
+ * decorative — the text carries the information (never colour alone).
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  variant: 'info' | 'success' | 'warning' | 'error';
+  title: string;
+  message?: string;
+}
+
+const { variant, title, message } = Astro.props;
+
+const icons = {
+  info: 'lucide:info',
+  success: 'lucide:circle-check',
+  warning: 'lucide:triangle-alert',
+  error: 'lucide:circle-alert',
+} as const;
+---
+
+<div class:list={['alert', `alert--${variant}`]} role={variant === 'error' ? 'alert' : 'status'}>
+  <Icon name={icons[variant]} class="alert__icon" aria-hidden="true" />
+  <div class="alert__body">
+    <p class="alert__title">{title}</p>
+    {message && <p class="alert__message">{message}</p>}
+    <slot />
+  </div>
+</div>
+
+<style>
+  .alert {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border-left: 3px solid; /* Design §20.3 */
+    font-size: var(--text-body-sm);
+  }
+
+  .alert__icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+  }
+
+  .alert__title {
+    font-weight: 600;
+  }
+
+  .alert__message {
+    margin-top: var(--space-1);
+  }
+
+  .alert--info {
+    background-color: var(--color-info-100);
+    border-left-color: var(--color-primary-500);
+    color: var(--color-primary-700); /* Design §20.7 */
+  }
+
+  .alert--success {
+    background-color: var(--color-success-100);
+    border-left-color: var(--color-success-700);
+    color: var(--color-success-700); /* Design §20.6 */
+  }
+
+  .alert--warning {
+    background-color: var(--color-warning-100);
+    border-left-color: var(--color-warning-700);
+    color: var(--color-warning-700); /* Design §20.3 — 4.6:1 verified */
+  }
+
+  .alert--error {
+    background-color: var(--color-error-100);
+    border-left-color: var(--color-error-500);
+    color: var(--color-error-500); /* 4.6:1 on error-100 (Design §25.1) */
+  }
+</style>

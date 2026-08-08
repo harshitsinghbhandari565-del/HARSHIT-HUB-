@@ -1,0 +1,65 @@
+---
+/**
+ * TagRow — wrapping tag list (Design §13.3, Dev Plan T-D1 era).
+ *
+ * Overflow rules (Design §13.3): cards show at most five tags; when there
+ * are more than five, the first four render plus a "+N more" pill. Detail
+ * pages render every tag (`overflow={false}`) — tags wrap freely.
+ */
+import Tag from '../../../shared/ui/Tag.astro';
+
+interface Props {
+  tags: string[];
+  /** Card behaviour (max 5 visible + "+N more"); detail pages pass false. */
+  overflow?: boolean;
+}
+
+const { tags, overflow = true } = Astro.props;
+
+const MAX_VISIBLE = 5;
+const shouldCollapse = overflow && tags.length > MAX_VISIBLE;
+const visibleTags = shouldCollapse ? tags.slice(0, MAX_VISIBLE - 1) : tags;
+const hiddenCount = tags.length - visibleTags.length;
+---
+
+<ul class="tag-row" aria-label="Presentation tags">
+  {
+    visibleTags.map((tag) => (
+      <li>
+        <Tag label={tag} variant="content" />
+      </li>
+    ))
+  }
+  {
+    shouldCollapse && (
+      <li>
+        <span class="tag-row__more" title={tags.slice(MAX_VISIBLE - 1).join(', ')}>
+          +{hiddenCount} more
+        </span>
+      </li>
+    )
+  }
+</ul>
+
+<style>
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap; /* tags wrap, never horizontal-scroll (Design §13.3) */
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag-row__more {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) 10px;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+</style>

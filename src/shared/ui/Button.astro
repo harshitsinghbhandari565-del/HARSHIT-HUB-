@@ -1,0 +1,212 @@
+---
+/**
+ * Button — the one button component (TAD §7.5: "Button as one component,
+ * not three"). Renders an <a> when `href` is present and a <button>
+ * otherwise, so "a link navigates, a button acts" cannot be got wrong
+ * per-instance. A disabled link renders as <button disabled> — a dead
+ * anchor is a broken contract.
+ *
+ * The subtitle lives inside the element so it is part of the accessible
+ * name (TAD §24.5 rule 4). Icons are decorative (aria-hidden).
+ *
+ * `external` adds target="_blank" + rel="noopener noreferrer"
+ * (reverse-tabnabbing protection).
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  label: string;
+  subtitle?: string;
+  icon?: string;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  href?: string;
+  external?: boolean;
+  disabled?: boolean;
+  type?: 'button' | 'submit';
+  fullWidth?: boolean;
+  class?: string;
+}
+
+const {
+  label,
+  subtitle,
+  icon,
+  variant = 'primary',
+  href,
+  external = false,
+  disabled = false,
+  type = 'button',
+  fullWidth = false,
+  class: className,
+} = Astro.props;
+
+const asAnchor = Boolean(href) && !disabled;
+const classes = [
+  'btn',
+  `btn--${variant}`,
+  subtitle ? 'btn--has-subtitle' : '',
+  fullWidth ? 'btn--full-width' : '',
+  className ?? '',
+]
+  .filter(Boolean)
+  .join(' ');
+const externalAttrs = external ? { target: '_blank' as const, rel: 'noopener noreferrer' } : {};
+---
+
+{
+  asAnchor ? (
+    <a class={classes} href={href} {...externalAttrs}>
+      {icon && <Icon name={icon} class="btn__icon" aria-hidden="true" />}
+      <span class="btn__text">
+        <span class="btn__label">{label}</span>
+        {subtitle && <span class="btn__subtitle">{subtitle}</span>}
+      </span>
+    </a>
+  ) : (
+    <button class={classes} type={type} disabled={disabled || undefined}>
+      {icon && <Icon name={icon} class="btn__icon" aria-hidden="true" />}
+      <span class="btn__text">
+        <span class="btn__label">{label}</span>
+        {subtitle && <span class="btn__subtitle">{subtitle}</span>}
+      </span>
+    </button>
+  )
+}
+
+<style>
+  /* ── Base (Design §11.1) ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.25;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-default),
+      border-color var(--duration-fast) var(--ease-default),
+      box-shadow var(--duration-fast) var(--ease-default),
+      color var(--duration-fast) var(--ease-default),
+      transform var(--duration-fast) var(--ease-default);
+  }
+
+  .btn__text {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .btn__subtitle {
+    font-size: var(--text-caption);
+    font-weight: 400;
+    opacity: 0.7;
+  }
+
+  .btn--has-subtitle {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .btn--full-width {
+    width: 100%;
+  }
+
+  /* ── Primary — reserved exclusively for the dominant action (Rule 7) ── */
+  .btn--primary {
+    min-height: 52px;
+    min-width: 180px;
+    padding: var(--space-4) var(--space-8);
+    font-weight: 600;
+    color: var(--color-white);
+    background-color: var(--color-accent-500);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-accent);
+  }
+
+  .btn--primary:hover {
+    background-color: var(--color-accent-600);
+    box-shadow: var(--shadow-accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn--primary:active {
+    background-color: var(--color-accent-700); /* D-014 */
+    box-shadow: var(--shadow-sm);
+    transform: translateY(0);
+  }
+
+  /* ── Secondary ── */
+  .btn--secondary {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-6);
+    font-weight: 500;
+    color: var(--color-neutral-800);
+    background-color: transparent;
+    border: 1.5px solid var(--color-neutral-300);
+    border-radius: var(--radius-md);
+  }
+
+  .btn--secondary:hover {
+    color: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    background-color: var(--color-primary-50);
+  }
+
+  /* ── Ghost ── */
+  .btn--ghost {
+    padding: var(--space-2) var(--space-4);
+    font-weight: 500;
+    color: var(--color-primary-500);
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+  }
+
+  .btn--ghost:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
+  }
+
+  /* ── Disabled — no hover/active effects (Design §11.1) ── */
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn--primary:disabled:hover,
+  .btn--primary:disabled:active {
+    background-color: var(--color-accent-500);
+    box-shadow: var(--shadow-accent);
+    transform: none;
+  }
+
+  .btn--secondary:disabled:hover {
+    color: var(--color-neutral-800);
+    border-color: var(--color-neutral-300);
+    background-color: transparent;
+  }
+
+  .btn--ghost:disabled:hover {
+    color: var(--color-primary-500);
+    background-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+
+    .btn--primary:hover,
+    .btn--primary:active {
+      transform: none;
+    }
+  }
+</style>

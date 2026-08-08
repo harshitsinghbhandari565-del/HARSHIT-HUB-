@@ -1,0 +1,68 @@
+---
+/**
+ * IconButton — square icon-only control with a mandatory accessible name
+ * (TAD §15.6: `ariaLabel` is a required prop — TypeScript errors if
+ * omitted). 44×44px minimum touch target (Design §11.1, WCAG 2.5.8).
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  icon: string;
+  ariaLabel: string;
+  type?: 'button' | 'submit';
+  disabled?: boolean;
+  class?: string;
+}
+
+const { icon, ariaLabel, type = 'button', disabled = false, class: className } = Astro.props;
+---
+
+<button
+  class:list={['icon-btn', className]}
+  type={type}
+  aria-label={ariaLabel}
+  disabled={disabled || undefined}
+>
+  <Icon name={icon} aria-hidden="true" />
+</button>
+
+<style>
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: inherit;
+    background-color: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon-btn:hover {
+    background-color: var(--color-neutral-100);
+  }
+
+  .icon-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .icon-btn:disabled:hover {
+    background-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .icon-btn {
+      transition: none;
+    }
+  }
+</style>

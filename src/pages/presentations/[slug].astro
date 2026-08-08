@@ -1,0 +1,202 @@
+---
+/**
+ * Presentation detail page (Dev Plan T-D5) — one static page per
+ * PUBLISHED presentation. Title never truncates (Design §15.3); the
+ * Present action is the dominant element (Design §24.7 priority 1).
+ *
+ * Meta: title/description derive from content (TAD §17.2) so structured
+ * data cannot drift from visible content.
+ */
+import { getCollection } from 'astro:content';
+
+import ActionRow from '../../features/presentations/components/ActionRow.astro';
+import LinkHealthAlert from '../../features/presentations/components/LinkHealthAlert.astro';
+import PresentationMeta from '../../features/presentations/components/PresentationMeta.astro';
+import SubjectVisual from '../../features/presentations/components/SubjectVisual.astro';
+import TagRow from '../../features/presentations/components/TagRow.astro';
+import {
+  buildBackupUrl,
+  normalizeSlidesUrl,
+} from '../../features/presentations/lib/slidesUrl';
+import Alert from '../../shared/ui/Alert.astro';
+import Breadcrumb from '../../shared/ui/Breadcrumb.astro';
+import BaseLayout from '../../shared/layouts/BaseLayout.astro';
+import { breadcrumbSchema, presentationSchema } from '../../shared/lib/jsonLd';
+
+export async function getStaticPaths() {
+  const presentations = await getCollection('presentations', ({ data }) => data.published);
+  return presentations.map((entry) => ({
+    params: { slug: entry.id },
+    props: { presentation: entry },
+  }));
+}
+
+const { presentation } = Astro.props;
+const { data } = presentation;
+
+const presentUrl = normalizeSlidesUrl(data.googleSlidesUrl);
+const backupUrl = data.dropboxUrl
+  ? buildBackupUrl(data.dropboxUrl, data.forceDownload)
+  : undefined;
+const slidesDown = data.linkHealth.slides === 'unreachable';
+const description =
+  data.description ?? `${data.subject} presentation by Harshit — ${data.tags.join(', ')}.`;
+---
+
+<BaseLayout
+  title={data.title}
+  description={description}
+  activePath="/presentations"
+  jsonLd={[
+    presentationSchema({
+      slug: presentation.id,
+      title: data.title,
+      subject: data.subject,
+      dateISO: data.date.toISOString(),
+      description: data.description,
+    }),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Presentations', path: '/presentations/' },
+      { name: data.title, path: `/presentations/${presentation.id}/` },
+    ]),
+  ]}
+>
+  <main id="main-content">
+    <div class="container detail">
+      <nav class="detail__back-row">
+        <a class="detail__back" href="/presentations">
+          <svg
+            class="detail__back-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m12 19l-7-7l7-7M19 12H5"></path>
+          </svg>
+          Back to Presentations
+        </a>
+      </nav>
+
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Presentations', href: '/presentations' },
+          { label: data.title },
+        ]}
+      />
+
+      <SubjectVisual subject={data.subject} height={240} shape="detail" />
+
+      <PresentationMeta subject={data.subject} date={data.date} size="detail" />
+
+      <h1 class="detail__title">{data.title}</h1>
+
+      <TagRow tags={data.tags} overflow={false} />
+
+      <LinkHealthAlert linkHealth={data.linkHealth} />
+
+      <ActionRow presentUrl={presentUrl} backupUrl={backupUrl} slidesDown={slidesDown} />
+
+      <!-- Sign-in hint (Design §20.7): always visible, preventive. -->
+      <Alert
+        variant="info"
+        title="If the presentation asks you to sign in"
+        message={'Make sure the Google Slides link is set to "Anyone with the link can view."'}
+      />
+
+      {
+        data.description && (
+          <section class="detail__description">
+            <h2 class="detail__description-heading">About This Presentation</h2>
+            <p>{data.description}</p>
+          </section>
+        )
+      }
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .detail {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+    max-width: 860px;
+  }
+
+  .detail__back-row {
+    display: flex;
+  }
+
+  .detail__back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-primary-500);
+    font-weight: 500;
+    font-size: var(--text-body-sm);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--duration-fast) var(--ease-default);
+  }
+
+  .detail__back:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
+  }
+
+  .detail__back-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Unlimited lines, graceful wrapping — never truncated (Design §15.3). */
+  .detail__title {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-1);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-neutral-900);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .detail__description {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .detail__description-heading {
+    font-family: var(--font-display);
+    font-size: var(--text-heading-3);
+    font-weight: 600;
+    color: var(--color-neutral-900);
+  }
+
+  .detail__description p {
+    color: var(--color-neutral-700);
+    line-height: 1.6;
+  }
+</style>
+
+<script>
+  // Record the launch in personal recency when the Present action is
+  // clicked (Design §29.3). Progressive enhancement only: the anchor
+  // navigates regardless, and without this script the RecentRail simply
+  // shows the "Latest" fallback (TAD §10.4).
+  import { writeRecency } from '../../features/presentations/lib/recency';
+
+  const slug = window.location.pathname.split('/').filter(Boolean).pop();
+  const present = document.querySelector<HTMLAnchorElement>(
+    'a[href*="docs.google.com"][target="_blank"]',
+  );
+  if (slug && present) {
+    present.addEventListener('click', () => writeRecency(slug));
+  }
+</script>
